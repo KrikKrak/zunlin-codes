@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:code="ASCode.*"
+	layout="absolute" resize="OnAppResize()" creationComplete="OnCreateComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			import PEUIComponent.WidgetComponent.*;
+			import PEUIComponent.TransformToolSource.TransformTool;
+			import mx.core.UIComponent;
+			import ASCode.PhotoAdjust.*;
+			import ASCode.*;
+			import PEUIComponent.*;
+			
+			import mx.controls.Image;
+			import mx.controls.Alert;
+			
+			private const BORDER_SIZE:int = 10;
+			private const PHOTO_EDIT_PANEL_WIDTH:int = 200;
+			private const PHOTO_EDIT_PANEL_HEIGHT:int = 500;
+			private const PHOTO_VIEW_MIN_WIDTH:int = 500;
+			
+			[Bindable]
+			private var curPicZoom:Number = 100;
+			[Bindable]
+			private var canUndo:Boolean = false;
+			[Bindable]
+			private var canRedo:Boolean = false;
+			
+			private var editablePic:PhotoEditBitmap;
+			private var cropPanel:CropAreaPanel;
+			private var colorMaskPanel:ColorMaskPanel;
+			private var straightenPanel:StraightenPanel;
+			private var widgetPanel:WidgetPanel;
+			private var dragPanel:IDragPanel;
+			private var dragStart:Boolean = false;
+			private var mousePos:Array;
+			private var picShowRect:Rectangle;
+			
+			private function OnAppResize():void
+			{
+				if (controlPanel != null)
+				{
+					photoViewPanel.width = Math.max(this.width - PHOTO_EDIT_PANEL_WIDTH - photoViewPanel.x - BORDER_SIZE - BORDER_SIZE,
+																	PHOTO_VIEW_MIN_WIDTH);
+					controlPanel.x = photoViewPanel.x + photoViewPanel.width + BORDER_SIZE;
+				}
+				if (editablePic != null)
+				{
+					FitPreviewArea();
+				}
+			}
+			
+			private function OnCreateComplete():void
+			{
+				mousePos = new Array(2);
+				
+				this.addEventListener(MouseEvent.MOUSE_DOWN, OnAppMouseDown, false, 0, true);
+				this.addEventListener(MouseEvent.MOUSE_MOVE, OnAppMouseMove, false, 0, true);
+				this.addEventListener(MouseEvent.MOUSE_UP, OnAppMouseUp, false, 0, true);
+				
+				OnAppResize();
+				LoadImage();
+			}
+			
+			private function LoadImage():void
+			{
+				var image:Image = new Image;
+				image.addEventListener(Event.COMPLETE, OnImageLoadComplete, false, 0, true);
+				image.source = "photo2.jpg";
+				image.width = 0;
+				image.height = 0;
+				image.visible = false;
+				this.addChild(image);
+			}
+			
+			private function OnImageLoadComplete(event:Event):void
+			{
+				var image:Image = event.target as Image;
+				editablePic = new PhotoEditBitmap((image.content as Bitmap).bitmapData);
+				editablePic.addEventListener("event_DataChange", OnPicDataChange);
+				photoViewPanel.addChild(editablePic);
+				editablePic.x = 0;
+				editablePic.y = 0;
+				FitPreviewArea();
+				DragPanelManager.AddPanel(editablePic);
+			}
+			
+			private function OnPicDataChange(event:Event):void
+			{
+				FitPreviewArea();
+			}
+			
+			private function FitPreviewArea():void
+			{
+				var wantWidth:Number = photoViewPanel.width - photoViewPanel.getStyle("borderThicknessLeft") - photoViewPanel.getStyle("borderThicknessRight");
+				var wantHeight:Number = photoViewPanel.height - 28 - photoViewPanel.getStyle("borderThicknessTop") - photoViewPanel.getStyle("borderThicknessBottom");
+				editablePic.SetWH(wantWidth, wantHeight);
+				var scaleX:Number = editablePic.bitmapScaleX;
+				curPicZoom = scaleX * 100;
+				hs_Zoom.minimum = int(curPicZoom);
+				hs_Zoom.value = curPicZoom;
+				
+				// add mask to pic preview area
+				var maskSquare:Shape = new Shape();
+				maskSquare.graphics.lineStyle(1, 0x000000);
+				maskSquare.graphics.beginFill(0xff0000);
+				maskSquare.graphics.drawRect(0, 0, wantWidth, wantHeight);
+				maskSquare.graphics.endFill();
+				maskSquare.alpha = 0.0;
+				editablePic.RemoveUnusedChild();
+				editablePic.addChild(maskSquare);
+				editablePic.mask = maskSquare;
+				
+				var upperLeft:Point = editablePic.localToGlobal(new Point(0, 0));
+				picShowRect = new Rectangle(upperLeft.x, upperLeft.y, editablePic.width, editablePic.height);
+			}
+			
+			private function OnZoomChange():void
+			{
+				editablePic.SetScale(hs_Zoom.value / 100);
+				if (cropPanel != null)
+				{
+					cropPanel.DataSizeChange();
+				}
+				if (straightenPanel != null)
+				{
+					straightenPanel.DataSizeChange();
+				}
+				if (widgetPanel != null)
+				{
+					widgetPanel.UpdatePanelSize(editablePic.dataGlobalRect);
+				}
+				if (colorMaskPanel != null)
+				{
+					colorMaskPanel.dataSizeChange(hs_Zoom.value);
+				}
+				
+				curPicZoom = hs_Zoom.value;
+			}
+			
+			private function UpdateUndoRedo():void
+			{
+				canUndo = ActionManager.canUndo;
+				canRedo = ActionManager.canRedo;
+			}
+			
+			private function OnBtnExpCont():void
+			{
+				var expContInst:ExpContAdjPanel = ExpContAdjPanel.GetExpContAdjPanel();
+				expContInst.addEventListener("closePanel", OnExpContPanelExit, false, 0, true);
+				expContInst.SetBitmap(editablePic.bitmap);
+				this.addChild(expContInst);
+				DragPanelManager.AddPanel(expContInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnExpContPanelExit(event:Event):void
+			{
+				var expContInst:ExpContAdjPanel = event.target as ExpContAdjPanel;
+				expContInst.removeEventListener("closePanel", OnExpContPanelExit);
+				this.removeChild(expContInst);
+				DragPanelManager.RemovePanel(expContInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			private function OnBtnColor():void
+			{
+				var colorInst:ColorAdjPanel = ColorAdjPanel.GetColorAdjPanel();
+				colorInst.addEventListener("closePanel", OnColorPanelExit, false, 0, true);
+				colorInst.SetBitmap(editablePic.bitmap);
+				this.addChild(colorInst);
+				DragPanelManager.AddPanel(colorInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnColorPanelExit(event:Event):void
+			{
+				var colorInst:ColorAdjPanel = event.target as ColorAdjPanel;
+				colorInst.removeEventListener("closePanel", OnColorPanelExit);
+				this.removeChild(colorInst);
+				DragPanelManager.RemovePanel(colorInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			private function OnBtnSharp():void
+			{
+				var sharpInst:SharpPanel = SharpPanel.GetSharpPanel();
+				sharpInst.addEventListener("closePanel", OnSharpPanelExit, false, 0, true);
+				sharpInst.SetBitmap(editablePic.bitmap);
+				this.addChild(sharpInst);
+				DragPanelManager.AddPanel(sharpInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnSharpPanelExit(event:Event):void
+			{
+				var sharpInst:SharpPanel = event.target as SharpPanel;
+				sharpInst.removeEventListener("closePanel", OnSharpPanelExit);
+				this.removeChild(sharpInst);
+				DragPanelManager.RemovePanel(sharpInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			private function OnBtnBlur():void
+			{
+				var BlurInst:BlurPanel = BlurPanel.GetBlurPanel();
+				BlurInst.addEventListener("closePanel", OnBlurPanelExit, false, 0, true);
+				BlurInst.SetBitmap(editablePic.bitmap);
+				this.addChild(BlurInst);
+				DragPanelManager.AddPanel(BlurInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnBlurPanelExit(event:Event):void
+			{
+				var BlurInst:BlurPanel = event.target as BlurPanel;
+				BlurInst.removeEventListener("closePanel", OnBlurPanelExit);
+				this.removeChild(BlurInst);
+				DragPanelManager.RemovePanel(BlurInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			private function OnBtnRotate():void
+			{
+				var rotateInst:RotatePanel = RotatePanel.GetRotatePanel();
+				rotateInst.addEventListener("closePanel", OnRotatePanelExit, false, 0, true);
+				rotateInst.SetBitmap(editablePic);
+				this.addChild(rotateInst);
+				DragPanelManager.AddPanel(rotateInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnRotatePanelExit(event:Event):void
+			{
+				var rotateInst:RotatePanel = event.target as RotatePanel;
+				rotateInst.removeEventListener("closePanel", OnRotatePanelExit);
+				this.removeChild(rotateInst);
+				DragPanelManager.RemovePanel(rotateInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			
+			private function OnBtnCrop():void
+			{
+				cropPanel = CropAreaPanel.GetCropPanel();
+				photoViewPanel.addChild(cropPanel);
+				cropPanel.SetInitWH(editablePic.width, editablePic.height);
+				DragPanelManager.AddPanel(cropPanel);
+				cropPanel.SetCropBitmap(editablePic);
+				EnableAdjustFunc(false);
+				btn_crop_done.enabled = true;
+				btn_crop_cancel.enabled = true;
+			}
+			
+			private function OnBtnCropDone(done:Boolean):void
+			{
+				if (cropPanel != null)
+				{
+					if (done == true)
+					{
+						cropPanel.CropDone();
+					}
+					photoViewPanel.removeChild(cropPanel);
+					DragPanelManager.RemovePanel(cropPanel);
+					UpdateUndoRedo();
+					EnableAdjustFunc(true);
+					btn_crop_done.enabled = false;
+					btn_crop_cancel.enabled = false;
+				}
+			}
+			
+			private function OnBtnWhiten():void
+	        {
+	        	colorMaskPanel = ColorMaskPanel.GetColorMaskPanel();
+				photoViewPanel.addChild(colorMaskPanel);
+				colorMaskPanel.x = editablePic.x;
+				colorMaskPanel.y = editablePic.y;
+				colorMaskPanel.width = editablePic.width;
+				colorMaskPanel.height = editablePic.height;
+				colorMaskPanel.maskColor = 0xffffff;
+				DragPanelManager.AddPanel(colorMaskPanel);
+				colorMaskPanel.bitmapData = editablePic;
+				EnableAdjustFunc(false);
+				colorMaskPanel.dataSizeChange(hs_Zoom.value);
+				btn_Whiten_Mode.enabled = true;
+				btn_Whiten_Done.enabled = true;
+				btn_Whiten_Cancel.enabled = true;
+	        }
+	        
+	        private function OnBtnWhitenMode():void
+	        {
+	        	if (colorMaskPanel != null)
+				{
+					btn_Whiten_Mode.label = btn_Whiten_Mode.selected ? "Pan" : "Erase";
+					colorMaskPanel.mode = btn_Whiten_Mode.selected ? ColorMaskPanel.ERASER : ColorMaskPanel.PEN;
+				}
+	        }
+	        
+	        private function OnBtnWhitenDone(done:Boolean):void
+	        {
+	        	if (colorMaskPanel != null)
+				{
+					if (done == true)
+					{
+						colorMaskPanel.whitenDone();
+					}
+					photoViewPanel.removeChild(colorMaskPanel);
+					DragPanelManager.RemovePanel(colorMaskPanel);
+					UpdateUndoRedo();
+					EnableAdjustFunc(true);
+					btn_Whiten_Mode.enabled = false;
+					btn_Whiten_Done.enabled = false;
+					btn_Whiten_Cancel.enabled = false;
+				}
+	        }
+			
+			private function OnBtnStraighten():void
+			{
+				straightenPanel = StraightenPanel.GetStraightenPanel();
+				photoViewPanel.addChild(straightenPanel);
+				straightenPanel.SetBitmap(editablePic);
+				straightenPanel.DataSizeChange();
+				DragPanelManager.AddPanel(straightenPanel);
+				EnableAdjustFunc(false);
+				btn_Straighten_done.enabled = true;
+				btn_Straighten_cancel.enabled = true;
+			}
+			
+			private function OnBtnStraightenDone(done:Boolean):void
+			{
+				if (straightenPanel != null)
+				{
+					if (done == true)
+					{
+						straightenPanel.StraightenDone();
+					}
+					else
+					{
+						straightenPanel.StraightenCancel();
+					}
+					photoViewPanel.removeChild(straightenPanel);
+					DragPanelManager.RemovePanel(straightenPanel);
+					UpdateUndoRedo();
+					EnableAdjustFunc(true);
+					btn_Straighten_done.enabled = false;
+					btn_Straighten_cancel.enabled = false;
+				}
+			}
+			
+			private function OnBtnWidget():void
+			{
+				var widgetInst:WidgetShowPanel = WidgetShowPanel.GetWidgetShowPanel();
+				widgetInst.addEventListener("closePanel", OnWidgetShowPanelExit, false, 0, true);
+				widgetInst.addEventListener(WidgetSelectEvent.WIDGET_SELECT, OnWidgetSelect, false, 0, true);
+				this.addChild(widgetInst);
+				DragPanelManager.AddPanel(widgetInst);
+				EnableAdjustFunc(false);
+			}
+			
+			private function OnWidgetShowPanelExit(event:Event):void
+			{
+				if (widgetPanel != null)
+				{
+					widgetPanel.EndWidgetEdit();
+				}
+				var widgetInst:WidgetShowPanel = event.target as WidgetShowPanel;
+				widgetInst.removeEventListener("closePanel", OnWidgetShowPanelExit);
+				widgetInst.removeEventListener(WidgetSelectEvent.WIDGET_SELECT, OnWidgetSelect);
+				this.removeChild(widgetInst);
+				DragPanelManager.RemovePanel(widgetInst);
+				UpdateUndoRedo();
+				EnableAdjustFunc(true);
+			}
+			
+			private function OnWidgetSelect(event:WidgetSelectEvent):void
+			{
+				if (widgetPanel == null)
+				{
+					widgetPanel = WidgetPanel.GetWidgetPanel();
+					widgetPanel.data = editablePic;
+					photoViewPanel.addChild(widgetPanel);
+					DragPanelManager.AddPanel(widgetPanel);
+					widgetPanel.x = editablePic.x;
+					widgetPanel.y = editablePic.y;
+					widgetPanel.width = editablePic.width;
+					widgetPanel.height = editablePic.height;
+					widgetPanel.UpdatePanelSize(editablePic.dataGlobalRect);
+				}
+				widgetPanel.AddWidget((event as WidgetSelectEvent).widget);
+			}
+
+			private function OnPEUndo():void
+			{
+				var photoEditAction:PEBaseAction = ActionManager.Undo() as PEBaseAction;
+				if (photoEditAction != null)
+				{
+					UpdateUndoRedo();
+				}
+				else
+				{
+					Alert.show("Can not Undo");
+				}
+			}
+			
+			private function OnPERedo():void
+			{
+				var photoEditAction:PEBaseAction = ActionManager.Redo() as PEBaseAction;
+				if (photoEditAction != null)
+				{
+					UpdateUndoRedo();
+				}
+				else
+				{
+					Alert.show("Can not Redo");
+				}
+			}
+			
+			private function OnAppMouseDown(event:MouseEvent):void
+			{
+				dragPanel = DragPanelManager.GetMouseOverPanel(this.mouseX, this.mouseY);
+				if (dragPanel is PhotoEditBitmap && !picShowRect.contains(this.mouseX, this.mouseY))
+				{
+					dragPanel = null;
+				}
+				dragStart = (dragPanel != null);
+				UpdateMousePos();
+			}
+			
+			private function OnAppMouseMove(event:MouseEvent):void
+			{
+				if (dragStart == true && dragPanel != null && dragPanel.moveable == true)
+				{
+					dragPanel.ChangDragPos(this.mouseX - mousePos[0], this.mouseY - mousePos[1]);
+				}
+				UpdateMousePos();
+			}
+			
+			private function OnAppMouseUp(event:MouseEvent):void
+			{
+				dragStart = false;
+			}
+			
+			private function UpdateMousePos():void
+	        {
+	        	mousePos[0] = this.mouseX;
+	        	mousePos[1] = this.mouseY;
+	        }
+	        
+	        private function EnableAdjustFunc(en:Boolean):void
+	        {
+	        	btn_Exp_Cont.enabled = en;
+	        	btn_Color.enabled = en;
+	        	btn_Sharp.enabled = en;
+	        	btn_Blur.enabled = en;
+	        	btn_crop.enabled = en;
+	        	btn_Undo.enabled = en;
+	        	btn_Redo.enabled = en;
+	        	btn_Straighten.enabled = en;
+	        	btn_Rotate.enabled = en;
+	        	btn_Widget.enabled = en;
+	        	btn_Whiten.enabled = en;
+	        }
+			
+		]]>
+	</mx:Script>
+
+	<mx:Panel id="photoViewPanel" x="{BORDER_SIZE}" y="{BORDER_SIZE}" width="{PHOTO_VIEW_MIN_WIDTH}" height="{PHOTO_EDIT_PANEL_HEIGHT}"
+		layout="absolute" title="Photo Preview"
+		borderThicknessBottom="2" borderThicknessLeft="10" borderThicknessRight="10" borderThicknessTop="2"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" backgroundColor="0x000000">
+	</mx:Panel>
+	
+	<mx:Accordion id="controlPanel" x="50" y="{BORDER_SIZE}" width="{PHOTO_EDIT_PANEL_WIDTH}" height="{PHOTO_EDIT_PANEL_HEIGHT}">
+		<mx:Canvas id="photoEditPanel" label="Photo Edit" width="100%" height="100%"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		
+			<mx:VBox x="0" y="0" width="100%" verticalGap="2">
+				<mx:Spacer height="5"/>
+				<mx:Button id="btn_Exp_Cont" label="Exposure &amp; Contrast" width="100%" click="OnBtnExpCont()"/>
+				<mx:Button id="btn_Color" label="Color" width="100%" click="OnBtnColor()"/>
+				<mx:Button id="btn_Sharp" label="Sharp" width="100%" click="OnBtnSharp()"/>
+				<mx:Button id="btn_Blur" label="Blur" width="100%" click="OnBtnBlur()"/>
+				
+				<mx:HBox width="100%">
+					<mx:Button id="btn_crop" label="Crop" click="OnBtnCrop()"/>
+					<mx:Button id="btn_crop_done" label="Done" enabled="false" click="OnBtnCropDone(true)"/>
+					<mx:Button id="btn_crop_cancel" label="Cancel" enabled="false" click="OnBtnCropDone(false)"/>
+				</mx:HBox>
+				
+				<mx:HBox width="100%">
+					<mx:Button id="btn_Straighten" label="Straighten" click="OnBtnStraighten()" paddingLeft="1" paddingRight="1"/>
+					<mx:Button id="btn_Straighten_done" label="Done" enabled="false" click="OnBtnStraightenDone(true)" paddingLeft="1" paddingRight="1"/>
+					<mx:Button id="btn_Straighten_cancel" label="Cancel" enabled="false" click="OnBtnStraightenDone(false)"/>
+				</mx:HBox>
+				
+				<mx:Button id="btn_Rotate" label="Rotate" width="100%" click="OnBtnRotate()"/>
+
+				<mx:Label text="Zoom:" width="100%"/>
+				<mx:HSlider id="hs_Zoom" width="100%" minimum="1" maximum="300" dataTipPrecision="0" dataTipOffset="1" snapInterval="0.1"
+					change="OnZoomChange()" liveDragging="true" showDataTip="false"/>
+				<mx:Label text="{int(curPicZoom)}%" width="100%" textAlign="right"/>
+				
+				<mx:HBox width="100%">
+					<mx:Spacer width="5"/>
+					<mx:Button id="btn_Undo" label="Undo" visible="{canUndo}" click="OnPEUndo()"/>
+					<mx:Button id="btn_Redo" label="Redo" visible="{canRedo}" click="OnPERedo()"/>
+				</mx:HBox>
+				
+				<mx:Button id="btn_Widget" label="Widget" width="100%" click="OnBtnWidget()"/>
+				
+			</mx:VBox>
+		
+		</mx:Canvas>
+		
+		<mx:Canvas id="photoEffectPanel" label="Photo Effect" width="100%" height="100%"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			
+			<mx:VBox x="0" y="0" width="100%" verticalGap="2">
+			
+				<!--Whiten Panel-->
+				<mx:HBox width="100%">
+					<mx:Button id="btn_Whiten" label="Whiten" click="OnBtnWhiten()" paddingLeft="1" paddingRight="1"/>
+					<mx:Button id="btn_Whiten_Mode" label="Eraser" toggle="true" enabled="false" click="OnBtnWhitenMode()" paddingLeft="1" paddingRight="1"/>
+					<mx:Button id="btn_Whiten_Done" label="Done" enabled="false" click="OnBtnWhitenDone(true)" paddingLeft="1" paddingRight="1"/>
+					<mx:Button id="btn_Whiten_Cancel" label="Cancel" enabled="false" click="OnBtnWhitenDone(false)" paddingLeft="1" paddingRight="1"/>
+				</mx:HBox>
+				
+			</mx:VBox>
+		</mx:Canvas>
+		
+		<mx:Canvas id="photoFramePanel" label="Photo Frame" width="100%" height="100%">
+		</mx:Canvas>
+	</mx:Accordion>
+	
+	<mx:Canvas id="TestPanel" x="{BORDER_SIZE}" y="{photoViewPanel.y + photoViewPanel.height + BORDER_SIZE}"
+		width="{this.width - 2 * BORDER_SIZE}" height="200" backgroundColor="0xFFFFFF">
+		<mx:VBox x="0" y="0" width="100%" height="100%">
+			<mx:Spacer height="5"/>
+			<mx:HBox width="100%">
+				<mx:Label text="Test Panel, not in use"/>
+				<mx:Button id="btn_Rect" label="Draw Rect" click="{shapeContainer.DrawRect()}"/>
+				<mx:Button id="btn_Circle" label="Draw Circle" click="{shapeContainer.DrawCircle()}"/>
+			</mx:HBox>
+			
+			<code:ShapeContainer id="shapeContainer" width="100%" height="100%"/>
+		</mx:VBox>
+	</mx:Canvas>
+	
+</mx:Application>

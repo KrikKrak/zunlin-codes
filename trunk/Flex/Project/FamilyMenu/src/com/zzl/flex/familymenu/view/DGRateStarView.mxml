@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	horizontalGap="4" horizontalAlign="right"
+	>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Label;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			
+			import mx.controls.Image;
+			
+			private var _curRate:int = 0;
+			
+			[Embed(source="../assets/star_empty.png")]
+			private const STAR_EMPTY:Class;
+			[Embed(source="../assets/star_full.png")]
+			private const STAR_FULL:Class;
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+			
+				if (value is DishDetail)
+				{
+					_curRate = (value as DishDetail).rate;
+				}
+				else if (value is int)
+				{
+					_curRate = int(value);
+				}
+				else
+				{
+					_curRate = -1;
+				}
+				
+				this.removeAllChildren();
+				if (_curRate == -1)
+				{
+					var l:Label = new Label;
+					l.percentWidth = 100;
+					l.percentHeight = 100;
+					l.text = GlobeModelLocator.CHINESE_ALL_WORD;
+					l.setStyle("fontWeight", "bold");
+					l.setStyle("textAlign", "left");
+					this.addChild(l);
+				}
+				else if (_curRate == 0)
+				{
+					var img:Image = new Image;
+					img.source = STAR_EMPTY;
+					img.scaleX = 0.5;
+					img.scaleY = 0.5;
+					this.addChild(img);
+				}
+				else
+				{
+					for (var i:int = 0; i < _curRate; ++i)
+					{
+						img = new Image;
+						img.source = STAR_FULL;
+						img.scaleX = 0.5;
+						img.scaleY = 0.5;
+						this.addChild(img);
+					}
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+</mx:HBox>

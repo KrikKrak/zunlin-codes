@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.familymenu.view.*"
+	resize="OnMainAppResize(null)"
+	creationComplete="OnAppCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			
+			import flash.display.GradientType;
+			
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			
+			private const LEFT_GAP:int = 10;
+			private const RIGHT_GAP:int = 10;
+			private const TOP_GAP:int = 10;
+			private const BOTTOM_GAP:int = 10;
+			
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
+			private var _tempMask:Canvas;
+			
+			private function OnAppCreationComplete():void
+			{
+				// register main frame (myself)
+				_modelLocator.mainFrame = this;
+				_modelLocator.addEventListener(GlobeModelLocator.E_NEW_DISH_SHOW_UP, OnNewDishShowUp, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_DISHS_UPDATE, OnDishsUpdate, false, 0, true);
+				
+				DrawBackground();
+				Update3DCenter();
+			}
+			
+			private function OnMainAppResize(e:Event):void
+			{
+				DrawBackground();
+				Update3DCenter();
+			}
+			
+			private function Update3DCenter():void
+			{
+				var p:PerspectiveProjection = new PerspectiveProjection;
+				var pc:Point = contentArea.localToGlobal(new Point(contentArea.width / 2, contentArea.height / 2));
+				p.projectionCenter = pc;
+				p.fieldOfView = 45;
+				this.transform.perspectiveProjection = p;
+			}
+			
+			private function DrawBackground():void
+			{
+				var g:Graphics = this.graphics;
+				var m:Matrix = new Matrix;
+				m.createGradientBox(this.width, this.height, 45, 0, 0);
+				g.clear();
+				g.beginGradientFill(GradientType.LINEAR, [0x2A3F5C, 0x576fa0], [1, 1], [200, 255], m);
+				g.drawRect(0, 0, this.width, this.height);
+				g.endFill();
+			}
+			
+			private function OnDishsUpdate(e:Event):void
+			{
+				var c:int = _modelLocator.dishs.length;
+				switch (c)
+				{
+					case 0:
+						totalDishsCount.text = "一个菜都没，吃啥！";
+						break;
+					
+					case 1:
+						totalDishsCount.text = "才1个菜啊！";
+						break;
+					
+					default:
+						totalDishsCount.text = "一共有" + c.toString() + "个菜了！";
+						break;
+				}
+			}
+			
+			private function OnNewDishShowUp(e:Event):void
+			{
+				if (_modelLocator.isNewDishShowUp == true)
+				{
+					ApplyBlurFilter(true);
+					ApplyFreezeLayer(true)
+				}
+				else
+				{
+					ApplyBlurFilter(false);
+					ApplyFreezeLayer(false)
+				}
+			}
+			
+			private function ApplyBlurFilter(apply:Boolean):void
+			{
+				if (apply == true && bottomLayer.filters.length == 0)
+				{
+					var blur:BlurFilter = new BlurFilter;
+					blur.blurX = 10;
+					blur.blurY = 10;
+					blur.quality = 2;
+					bottomLayer.filters = [blur];
+				}
+				else
+				{
+					bottomLayer.filters = [];
+				}
+			}
+			
+			private function ApplyFreezeLayer(apply:Boolean):void
+			{
+				freezeInputLayer.visible = apply;
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="bottomLayer" width="100%" height="100%">
+	
+		<mx:TabBar id="tb" x="{LEFT_GAP}" y="{TOP_GAP}" dataProvider="contentArea"/>
+		<mx:Label id="totalDishsCount" x="{viewStackContainer.x + viewStackContainer.width - totalDishsCount.width}" y="{tb.y}"
+			text="0" textAlign="right" color="0xFFFFFF"/>
+		<mx:Canvas id="viewStackContainer"
+			x="{LEFT_GAP}" y="{tb.y + tb.height + 5}"
+			width="{this.width - LEFT_GAP - RIGHT_GAP}" height="{this.height - BOTTOM_GAP - viewStackContainer.y}">
+
+			<view:AnimatedViewStack id="contentArea" x="0" y="0" width="100%" height="100%">
+				
+				<view:BrowseMenuView label="浏览菜单" width="100%" height="100%"/>
+				<view:PickFoodView label="自动选菜" width="100%" height="100%"/>
+				<view:DataStatisticsView label="数据统计" width="100%" height="100%"/>
+				<view:DataVisualizeView label="数据可视化" width="100%" height="100%"/>
+				
+			</view:AnimatedViewStack>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	<mx:Canvas id="freezeInputLayer" width="100%" height="100%" backgroundColor="0x000000" backgroundAlpha="0" visible="false"/>
+
+</mx:Canvas>

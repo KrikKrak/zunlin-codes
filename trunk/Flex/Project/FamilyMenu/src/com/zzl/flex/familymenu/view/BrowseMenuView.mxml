@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundColor="0xFFFFFF" backgroundAlpha="1"
+	cornerRadius="10"
+	borderThickness="10" borderColor="0xC1D3E9" borderStyle="solid"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="OnPanelCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ListEvent;
+			
+			import mx.collections.ArrayCollection;
+
+			import com.zzl.flex.familymenu.controller.MainController;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.model.viewCommand.CreateNewDishViewCommand;
+			import com.zzl.flex.familymenu.model.viewCommand.DeleteDishCommand;
+			import com.zzl.flex.familymenu.model.viewCommand.EditDishCommand;
+			
+			import com.roxio.online.flexLogger.controller.Logger;
+			import com.roxio.online.flexLogger.controller.LogManager;
+			
+			private var _logger:Logger;
+			private var _controller:MainController = MainController.inst;
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
+			private var _flowDetailWnd:FlowDetailWnd;
+			private var _hookFlowDetailWnd:Boolean = false;
+			
+			private var _categorysBox:ArrayCollection = new ArrayCollection;
+			private var _dishTypeBox:ArrayCollection = new ArrayCollection;
+			private var _isHotBox:ArrayCollection = new ArrayCollection;
+			private var _rateBox:ArrayCollection = new ArrayCollection;
+			private var _seasonsBox:ArrayCollection = new ArrayCollection;
+			
+			private var _dishs:ArrayCollection;
+			[Bindable]
+			private var _showDishs:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			private var _selectItemIndex:int = -1;
+			
+			private const G_GAP:int = 5;
+			private const ALL_WORD:String = GlobeModelLocator.CHINESE_ALL_WORD;
+
+			private function OnPanelCreationComplete():void
+			{
+				_logger = LogManager.inst.getLogger("BrowseMenuView");
+				_logger.fine("OnPanelCreationComplete", "BrowseMenuView creation complete!");
+				
+				_modelLocator.addEventListener(GlobeModelLocator.E_DISHS_UPDATE, OnDishsUpdate, false, 0, true);
+				
+				//DrawBackground();
+			}
+			
+			private function DrawBackground():void
+			{
+				var g:Graphics = this.graphics;
+				var m:Matrix = new Matrix;
+				m.createGradientBox(this.width, this.height, 90, 0, 0);
+				g.beginGradientFill(GradientType.LINEAR, [0x2A3F5C, 0xb9cbe3], [1, 1], [200, 255], m);
+				g.drawRect(0, 0, this.width, this.height);
+				g.endFill();
+			}
+			
+			private function OnDishsUpdate(e:Event):void
+			{
+				_dishs = _modelLocator.dishs;
+				PrepareChoiceBox();
+				RefreshShowUpDishs();
+			}
+			
+			private function RefreshShowUpDishs():void
+			{
+				if (showAll.selected == true)
+				{
+					_showDishs = _dishs;
+				}
+				else
+				{
+					_showDishs = FilterDishs();
+				}
+				_showDishs.refresh();
+				_selectItemIndex = -1;
+			}
+			
+			private function FilterDishs():ArrayCollection
+			{
+				var d:ArrayCollection = new ArrayCollection;
+				
+				// get filter conditions
+				var cate:String = cb_category.selectedLabel;
+				var type:String = cb_dishType.selectedLabel;
+				var isHot:String = cb_isHot.selectedLabel;
+				var season:String = cb_seasons.selectedLabel;
+				var rate:String = cb_rate.selectedLabel;
+				
+				for (var i:int = 0; i < _dishs.length; ++i)
+				{
+					var isOK:Object = new Object;
+					if (cate != ALL_WORD)
+					{
+						if ((_dishs[i] as DishDetail).category == cate)
+						{
+							isOK.c = true;
+						}
+						else
+						{
+							isOK.c = false;
+						}
+					}
+					
+					if (type != ALL_WORD)
+					{
+						if ((_dishs[i] as DishDetail).dishType == type)
+						{
+							isOK.t = true;
+						}
+						else
+						{
+							isOK.t = false;
+						}
+					}
+					
+					if (isHot != ALL_WORD)
+					{
+						var h:Boolean = (isHot == "true" ? true : false);
+						if ((_dishs[i] as DishDetail).isHot == h)
+						{
+							isOK.h = true;
+						}
+						else
+						{
+							isOK.h = false;
+						}
+					}
+					
+					if (season != ALL_WORD)
+					{
+						var m:int = int(season);
+						isOK.m = false;
+						var dd:DishDetail = _dishs[i] as DishDetail;
+						for (var j:int = 0; j < dd.suitableSeason.length; ++j)
+						{
+							if (m == dd.suitableSeason[j])
+							{
+								isOK.m = true;
+								break;
+							}
+						}
+					}
+					
+					if (rate != ALL_WORD)
+					{
+						if ((_dishs[i] as DishDetail).rate == int(rate))
+						{
+							isOK.r = true;
+						}
+						else
+						{
+							isOK.r = false;
+						}
+					}
+					
+					var find:Boolean = true;
+					for (var v:Object in isOK)
+					{
+						if (isOK[v] == false)
+						{
+							find = false;
+						}
+					}
+					
+					if (find == true)
+					{
+						d.addItem(_dishs[i]);
+					}
+				}
+					
+				return d;
+			}
+			
+			private function PrepareChoiceBox():void
+			{
+				_categorysBox.removeAll();
+				_dishTypeBox.removeAll();
+				_isHotBox.removeAll();
+				_rateBox.removeAll();
+				_seasonsBox.removeAll();
+				
+				for (var i:int = 0; i < _dishs.length; ++i)
+				{
+					PrepareCategoryBox(_dishs[i] as DishDetail);
+					PrepareDishTypeBox(_dishs[i] as DishDetail);
+					PrepareIsHotBox(_dishs[i] as DishDetail);
+					PrepareRateBox(_dishs[i] as DishDetail);
+					PrepareSeasonBox(_dishs[i] as DishDetail);
+				}
+				
+				_categorysBox.addItemAt(ALL_WORD, 0);
+				_dishTypeBox.addItemAt(ALL_WORD, 0);
+				_isHotBox.addItemAt(ALL_WORD, 0);
+				_rateBox.addItemAt(ALL_WORD, 0);
+				_seasonsBox.addItemAt(ALL_WORD, 0);
+				
+				cb_category.dataProvider = _categorysBox;
+				cb_dishType.dataProvider = _dishTypeBox;
+				cb_isHot.dataProvider = _isHotBox;
+				cb_seasons.dataProvider = _seasonsBox;
+				cb_rate.dataProvider = _rateBox;
+				
+				cb_category.selectedIndex = 0;
+				cb_dishType.selectedIndex = 0;
+				cb_isHot.selectedIndex = 0;
+				cb_seasons.selectedIndex = 0;
+				cb_rate.selectedIndex = 0;
+			}
+			
+			private function PrepareCategoryBox(dish:DishDetail):void
+			{
+				if (_categorysBox.getItemIndex(dish.category) == -1)
+				{
+					_categorysBox.addItem(dish.category);
+				}
+			}
+			
+			private function PrepareDishTypeBox(dish:DishDetail):void
+			{
+				if (_dishTypeBox.getItemIndex(dish.dishType) == -1)
+				{
+					_dishTypeBox.addItem(dish.dishType);
+				}
+			}
+			
+			private function PrepareIsHotBox(dish:DishDetail):void
+			{
+				if (_isHotBox.getItemIndex(dish.isHot) == -1)
+				{
+					_isHotBox.addItem(dish.isHot);
+				}
+			}
+			
+			private function PrepareRateBox(dish:DishDetail):void
+			{
+				if (_rateBox.getItemIndex(dish.rate) == -1)
+				{
+					if (_rateBox.length == 0)
+					{
+						_rateBox.addItem(dish.rate);
+					}
+					else
+					{
+						for (var i:int = 0; i < _rateBox.length; ++i)
+						{
+							if (dish.rate < _rateBox[i] && i == 0)
+							{
+								_rateBox.addItemAt(dish.rate, i);
+							}
+							else if (dish.rate > _rateBox[i] && i == _rateBox.length - 1)
+							{
+								_rateBox.addItemAt(dish.rate, i + 1);
+								break;
+							}
+							else if (dish.rate > _rateBox[i] && dish.rate < _rateBox[i + 1])
+							{
+								_rateBox.addItemAt(dish.rate, i + 1);
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			private function PrepareSeasonBox(dish:DishDetail):void
+			{
+				for (var i:int = 0; i < dish.suitableSeason.length; ++i)
+				{
+					if (_seasonsBox.getItemIndex(dish.suitableSeason[i]) == -1)
+					{
+						if (_seasonsBox.length == 0)
+						{
+							_seasonsBox.addItem(dish.suitableSeason[i]);
+						}
+						else
+						{
+							for (var j:int = 0; j < _seasonsBox.length; ++j)
+							{
+								if (dish.suitableSeason[i] < _seasonsBox[j] && j == 0)
+								{
+									_seasonsBox.addItemAt(dish.suitableSeason[i], j);
+								}
+								else if (dish.suitableSeason[i] > _seasonsBox[j] && j == _seasonsBox.length - 1)
+								{
+									_seasonsBox.addItemAt(dish.suitableSeason[i], j + 1);
+									break;
+								}
+								else if (dish.suitableSeason[i] > _seasonsBox[j] && dish.suitableSeason[i] < _seasonsBox[j + 1])
+								{
+									_seasonsBox.addItemAt(dish.suitableSeason[i], j + 1);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			private function OnNewDish():void
+			{
+				_controller.handleCommand(CreateNewDishViewCommand.NAME);
+			}
+			
+			private function OnDelDish():void
+			{
+				var c:DeleteDishCommand = new DeleteDishCommand;
+				c.dishID = (_showDishs[_selectItemIndex] as DishDetail).id;
+				_controller.handleCommand(DeleteDishCommand.NAME, c);
+			}
+			
+			private function OnSelectionChange():void
+			{
+				_selectItemIndex = dg.selectedIndex;
+			}
+			
+			private function OnDoubleClickEditDish():void
+			{
+				if (_selectItemIndex == -1)
+				{
+					return;
+				}
+				
+				var c:EditDishCommand = new EditDishCommand;
+				c.dishID = (_showDishs[_selectItemIndex] as DishDetail).id;
+				_controller.handleCommand(EditDishCommand.NAME, c);
+			}
+			
+			private function OnDGItemRollOver(e:ListEvent):void
+			{
+				if (_flowDetailWnd == null)
+				{
+					_flowDetailWnd = new FlowDetailWnd;
+				}
+				this.addChild(_flowDetailWnd);
+				_flowDetailWnd.x = this.mouseX;
+				_flowDetailWnd.y = this.mouseY;
+				_flowDetailWnd.dish = _showDishs[e.rowIndex] as DishDetail;
+				_hookFlowDetailWnd = true;
+			}
+			
+			private function OnDGItemRollOut(e:ListEvent):void
+			{
+				if (_flowDetailWnd != null)
+				{
+					this.removeChild(_flowDetailWnd);
+				}
+				_hookFlowDetailWnd = false;
+			}
+			
+			private function OnMouseMoveOverDG():void
+			{
+				if (_hookFlowDetailWnd == true && _flowDetailWnd != null)
+				{
+					_flowDetailWnd.x = this.mouseX;
+					_flowDetailWnd.y = this.mouseY;
+				}
+			}
+			
+			override public function toString():String
+			{
+				return "BrowseMenuView";
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Style>
+		.dgColHeaderStyle
+		{
+			textAlign:center;
+		}
+	</mx:Style>
+
+	<mx:HBox id="mainFrame" width="100%" height="100%">
+		<mx:Spacer width="{G_GAP}"/>
+		<mx:VBox id="conditionPanel" width="150" height="100%" verticalGap="10">
+			<mx:Spacer height="{G_GAP}"/>
+			<mx:CheckBox id="showAll" label="显示全部" selected="true" click="RefreshShowUpDishs()"/>
+			<mx:VBox width="100%">
+				<mx:Label text="所属类别："/>
+				<mx:ComboBox id="cb_category" width="100%" enabled="{!showAll.selected}" change="RefreshShowUpDishs()"/>
+				<mx:Label text="菜属种类："/>
+				<mx:ComboBox id="cb_dishType" width="100%" enabled="{!showAll.selected}" change="RefreshShowUpDishs()"/>
+				<mx:Label text="辛辣："/>
+				<mx:ComboBox id="cb_isHot" width="100%" enabled="{!showAll.selected}" change="RefreshShowUpDishs()"/>
+				<mx:Label text="可用季节："/>
+				<mx:ComboBox id="cb_seasons" width="100%" enabled="{!showAll.selected}" change="RefreshShowUpDishs()"/>
+				<mx:Label text="等级："/>
+				<mx:ComboBox id="cb_rate" width="100%" enabled="{!showAll.selected}" change="RefreshShowUpDishs()"
+					itemRenderer="com.zzl.flex.familymenu.view.DGRateStarView"/>
+			</mx:VBox>
+			<mx:Spacer height="{G_GAP}"/>
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:Button id="btn_newDish" label="添加新菜" click="OnNewDish()"/>
+				<mx:Button id="btn_removeDish" label="删除" enabled="{_selectItemIndex != -1}" click="OnDelDish()"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:Spacer width="{G_GAP}"/>
+		<mx:VBox id="dishsPanel" width="100%" height="100%">
+			<mx:Spacer height="{G_GAP}"/>
+			<mx:DataGrid id="dg" width="100%" height="100%"
+				dataProvider="{_showDishs}" editable="false" draggableColumns="false" doubleClickEnabled="true"
+				change="OnSelectionChange()" doubleClick="OnDoubleClickEditDish()" mouseMove="OnMouseMoveOverDG()"
+				itemRollOver="OnDGItemRollOver(event)" itemRollOut="OnDGItemRollOut(event)">
+				
+				<mx:columns>
+					<mx:DataGridColumn headerText="菜名" headerStyleName="dgColHeaderStyle"
+						dataField="name"/>
+					<mx:DataGridColumn headerText="类别" width="50" headerStyleName="dgColHeaderStyle"
+						dataField="category"/>
+					<mx:DataGridColumn headerText="种类" width="50" headerStyleName="dgColHeaderStyle"
+						dataField="dishType"/>
+					<mx:DataGridColumn headerText="辣否" width="50" headerStyleName="dgColHeaderStyle"
+						dataField="isHot"
+						itemRenderer="com.zzl.flex.familymenu.view.DGIsHotView"/>
+					<mx:DataGridColumn headerText="级别" width="130" headerStyleName="dgColHeaderStyle"
+						dataField="rate"
+						itemRenderer="com.zzl.flex.familymenu.view.DGRateStarView"/>
+					<mx:DataGridColumn headerText="使用次数" width="80" headerStyleName="dgColHeaderStyle" textAlign="right"
+						dataField="usedTimes"/>
+				</mx:columns>
+				
+			</mx:DataGrid>
+			<mx:Spacer height="{G_GAP}"/>
+		</mx:VBox>
+		<mx:Spacer width="{G_GAP}"/>
+	</mx:HBox>
+	
+</mx:Canvas>

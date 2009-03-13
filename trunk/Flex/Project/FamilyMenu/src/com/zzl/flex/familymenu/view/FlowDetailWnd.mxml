@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="300" height="200"
+	cornerRadius="10" borderStyle="solid" borderThickness="5" borderColor="#7D7D7D"
+	backgroundColor="#B3B1B1" backgroundAlpha="0.85">
+	
+	<mx:Script>
+		<![CDATA[
+		
+			import mx.collections.ArrayCollection;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator
+			
+			[Bindable]
+			private var _suitableSeason:String = "";
+			[Bindable]
+			private var _createDate:String = "";
+			[Bindable]
+			private var _lastUseDate:String = "";
+			[Bindable]
+			private var _contents:String = "";
+			
+			private var _seasons:ArrayCollection = new ArrayCollection;
+			private var _dish:DishDetail;
+			
+			public function set dish(val:DishDetail):void
+			{
+				if (_dish == val)
+				{
+					return;
+				}
+				
+				_dish = val;
+				reset();
+				
+				_createDate = _dish.createDate.toDateString();
+				_lastUseDate = _dish.recentUsedDate.toDateString();
+				for each (var v:int in _dish.suitableSeason)
+				{
+					_suitableSeason += _seasons[v - 1];
+					_suitableSeason += " ";
+				}
+				for each (var c:String in _dish.content)
+				{
+					_contents += c;
+					_contents += " ";
+				}
+			}
+			
+			private function reset():void
+			{
+				_suitableSeason = "";
+				_createDate = "";
+				_lastUseDate = "";
+				_contents = "";
+				
+				_seasons.removeAll();
+				_seasons.addItem(GlobeModelLocator.SPRING);
+				_seasons.addItem(GlobeModelLocator.SUMMER);
+				_seasons.addItem(GlobeModelLocator.FALL);
+				_seasons.addItem(GlobeModelLocator.WINTER);
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Form x="0" y="0" width="100%" height="100%">
+		<mx:FormItem label="适合季节" width="100%">
+			<mx:Label width="100%" text="{_suitableSeason}"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建日期" width="100%">
+			<mx:Label width="100%" text="{_createDate}"/>
+		</mx:FormItem>
+		<mx:FormItem label="最近使用日期" width="100%">
+			<mx:Label width="100%" text="{_lastUseDate}"/>
+		</mx:FormItem>
+		<mx:FormItem label="原料" width="100%">
+			<mx:TextArea width="100%" height="50" text="{_contents}" backgroundAlpha="0"/>
+		</mx:FormItem>
+		<mx:FormItem label="" width="100%">
+			<mx:Label width="100%" text="更多详细内容请双击所在项目" textAlign="right"/>
+		</mx:FormItem>
+	</mx:Form>
+</mx:Canvas>

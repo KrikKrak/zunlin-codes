@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%"
+	creationComplete="OnPanelCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var _dataArray:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			private var _effectDuration:int = 500;
+			
+			public function set dataArray(val:ArrayCollection):void
+			{
+				_dataArray.removeAll();
+				_dataArray = val;
+				_dataArray.refresh();
+			}
+			
+			public function set effectDuration(val:int):void
+			{
+				_effectDuration = val;
+			}
+			
+			public function get effectDuration():int
+			{
+				return _effectDuration;
+			}
+			
+			private function OnPanelCreationComplete():void
+			{
+				/*
+				_dataArray.addItem({name: "test1", value: 20});
+				_dataArray.addItem({name: "test2", value: 50});
+				_dataArray.addItem({name: "test3", value: 40});
+				_dataArray.addItem({name: "test4", value: 80});
+				*/
+			}
+			
+			private function displayLabel(data:Object, field:String, index:Number, percentValue:Number):String
+			{
+				var temp:String= (" " + percentValue).substr(0,6);
+				return data.name + ": " + data.value + "个" + '\n占' + temp + "%";
+	        }
+	        
+		]]>
+	</mx:Script>
+	
+	<mx:SeriesInterpolate id="interpolateIn" duration="{_effectDuration}"/>
+	
+	<mx:SeriesSlide id="slidePieChart" duration="{_effectDuration}" direction="left"/>
+	<mx:PieChart id="piechart" width="100%" height="100%"
+		dataProvider="{_dataArray}" showDataTips="false">
+		<mx:series>
+			<mx:PieSeries displayName="name" field="value"
+				showDataEffect="{slidePieChart}" hideDataEffect="{slidePieChart}"
+				labelPosition="callout" labelFunction="displayLabel"/>
+		</mx:series>
+	</mx:PieChart>
+	
+</mx:Canvas>

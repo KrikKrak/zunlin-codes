@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	creationComplete="OnCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			
+		
+			import mx.controls.CheckBox;
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.algorithm.CommonTools;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.DishType;
+			import com.zzl.flex.familymenu.model.DishCategory;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.model.customEvent.ComplexSearchResultEvent;
+			import com.zzl.flex.familymenu.model.viewCommand.SearchDishCommand;
+			import com.zzl.flex.familymenu.controller.MainController;
+
+			private var _controller:MainController = MainController.inst;
+			
+			private var _categoryArray:ArrayCollection = new ArrayCollection;
+			private var _typeArray:ArrayCollection = new ArrayCollection;
+			private var _hotArray:ArrayCollection = new ArrayCollection;
+			private var _seasonArray:ArrayCollection = new ArrayCollection;
+			private var _rateArray:ArrayCollection = new ArrayCollection;
+			
+			private var _dishs:ArrayCollection;
+			private var _result:ArrayCollection;
+			
+			private const GAP:int = 10;
+			
+			
+			public function set dishs(val:ArrayCollection):void
+			{
+				_dishs = val;
+			}
+			
+			public function get result():ArrayCollection
+			{
+				return _result;
+			}
+			
+			private function OnCreationComplete():void
+			{
+				PrepareContent();
+				ip_key.setFocus();
+			}
+			
+			private function PrepareContent():void
+			{
+				_categoryArray.removeAll();
+				_typeArray.removeAll();
+				_hotArray.removeAll();
+				_seasonArray.removeAll();
+				_rateArray.removeAll();
+
+				var categorys:ArrayCollection = DishCategory.categoryMap;
+				for (var i:int = 0; i < categorys.length; ++i)
+				{
+					var categroyCheckBox:CheckBox = new CheckBox;
+					categroyCheckBox.selected = true;
+					categroyCheckBox.label = categorys[i];
+					_categoryArray.addItem(categroyCheckBox);
+					categoryPanel.addChild(categroyCheckBox);
+				}
+
+				var types:ArrayCollection = DishType.typeMap;
+				for (i = 0; i < types.length; ++i)
+				{
+					var typeCheckBox:CheckBox = new CheckBox;
+					typeCheckBox.selected = true;
+					typeCheckBox.label = types[i];
+					_typeArray.addItem(typeCheckBox);
+					typePanel.addChild(typeCheckBox);
+				}
+				
+				var hots:ArrayCollection = GlobeModelLocator.hotArray;
+				for (i = 0; i < hots.length; ++i)
+				{
+					var hotCheckBox:CheckBox = new CheckBox;
+					hotCheckBox.selected = true;
+					hotCheckBox.label = hots[i];
+					_hotArray.addItem(hotCheckBox);
+					hotPanel.addChild(hotCheckBox);
+				}
+				
+				var seasons:ArrayCollection = GlobeModelLocator.seasonsArray;
+				for (i = 0; i < seasons.length; ++i)
+				{
+					var seasonCheckBox:CheckBox = new CheckBox;
+					seasonCheckBox.selected = true;
+					seasonCheckBox.label = seasons[i];
+					_seasonArray.addItem(seasonCheckBox);
+					seasonPanel.addChild(seasonCheckBox);
+				}
+				
+				for (i = 1; i < 6; ++i)
+				{
+					var rateCheckBox:CheckBox = new CheckBox;
+					rateCheckBox.selected = true;
+					rateCheckBox.label = i.toString();
+					_rateArray.addItem(rateCheckBox);
+					ratePanel.addChild(rateCheckBox);
+				}
+			}
+			
+			private function OnSearch():void
+			{
+				var c:SearchDishCommand = new SearchDishCommand;
+				c.searchRang = _dishs;
+				c.keywords = PrepareKeywordsCondition();
+				c.category = PrepareCategoryCondition();
+				c.type = PrepareTypeCondition();
+				c.hot = PrepareHotCondition();
+				c.season = PrepareSeasonCondition();
+				c.rate = PrepareRateCondition();
+				c.resultCallbackFunction = OnSearchCallBack;
+				
+				_controller.handleCommand(SearchDishCommand.NAME, c);
+			}
+			
+			private function OnSearchCallBack(r:ArrayCollection):void
+			{
+				_result = r;
+				var e:ComplexSearchResultEvent = new ComplexSearchResultEvent(ComplexSearchResultEvent.E_COMPLEX_SEARCH_RESULT);
+				e.result = _result;
+				dispatchEvent(e);
+			}
+			
+			private function PrepareKeywordsCondition():ArrayCollection
+			{
+				return CommonTools.getArrayBySpace(CommonTools.trimString(ip_key.text));
+			}
+			
+			private function PrepareCategoryCondition():ArrayCollection
+			{
+				var c:ArrayCollection = new ArrayCollection;
+				for each (var cb:CheckBox in _categoryArray)
+				{
+					if (cb.selected == true)
+					{
+						c.addItem(cb.label);
+					}
+				}
+				return c;
+			}
+			
+			private function PrepareTypeCondition():ArrayCollection
+			{
+				var t:ArrayCollection = new ArrayCollection;
+				for each (var cb:CheckBox in _typeArray)
+				{
+					if (cb.selected == true)
+					{
+						t.addItem(cb.label);
+					}
+				}
+				return t;
+			}
+			
+			private function PrepareHotCondition():ArrayCollection
+			{
+				var h:ArrayCollection = new ArrayCollection;
+				for each (var cb:CheckBox in _hotArray)
+				{
+					if (cb.selected == true)
+					{
+						h.addItem(cb.label == GlobeModelLocator.HOT);
+					}
+				}
+				return h;
+			}
+			
+			private function PrepareSeasonCondition():ArrayCollection
+			{
+				var s:ArrayCollection = new ArrayCollection;
+				var sa:ArrayCollection = GlobeModelLocator.seasonsArray;
+				for each (var cb:CheckBox in _seasonArray)
+				{
+					if (cb.selected == true)
+					{
+						s.addItem(sa.getItemIndex(cb.label) + 1);
+					}
+				}
+				return s;
+			}
+			
+			private function PrepareRateCondition():ArrayCollection
+			{
+				var r:ArrayCollection = new ArrayCollection;
+				for each (var cb:CheckBox in _rateArray)
+				{
+					if (cb.selected == true)
+					{
+						r.addItem(int(cb.label));
+					}
+				}
+				return r;
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="opinionPanel" x="0" y="0" width="100%" height="{btnPanel.y - GAP}">
+		<mx:Form x="0" y="0" width="100%" height="100%">
+			<mx:FormItem label="关键字" width="100%">
+				<mx:TextInput id="ip_key" width="100%" toolTip="使用空格分隔关键字"/>
+			</mx:FormItem>
+			<mx:FormItem label="所属类别" width="100%">
+				<mx:Tile id="categoryPanel" width="100%" height="60"/>
+			</mx:FormItem>
+			<mx:FormItem label="菜属种类" width="100%">
+				<mx:Tile id="typePanel" width="100%" height="60"/>
+			</mx:FormItem>
+			<mx:FormItem label="辛辣" width="100%">
+				<mx:Tile id="hotPanel" width="100%" height="30"/>
+			</mx:FormItem>
+			<mx:FormItem label="可用季节" width="100%" height="30">
+				<mx:Tile id="seasonPanel" width="100%"/>
+			</mx:FormItem>
+			<mx:FormItem label="等级" width="100%">
+				<mx:Tile id="ratePanel" width="100%" height="30"/>
+			</mx:FormItem>
+		</mx:Form>
+
+	</mx:Canvas>
+	
+	<mx:HBox id="btnPanel" x="{opinionPanel.x}" y="{this.height - GAP - btn_search.height}" width="{opinionPanel.width}" horizontalAlign="right">
+		<mx:Button id="btn_search" label="查找" click="OnSearch()"/>
+		<mx:Spacer width="{GAP}"/>
+	</mx:HBox>
+
+</mx:Canvas>

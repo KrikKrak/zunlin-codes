@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DragPanel xmlns="PEUIComponent.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	x="150" y="150" width="222" height="82" borderStyle="outset" backgroundColor="#FFFFFF"
+	>
+	
+	<mx:Metadata>
+		[Event(name = "closePanel", type = "flash.events.Event")]
+	</mx:Metadata>
+
+	<mx:Script>
+		<![CDATA[
+			import ASCode.ActionManager;
+			import ASCode.PhotoAdjust.BlurAlg;
+			
+			private static var inst:BlurPanel = null;
+			private var slideClick:Boolean = false;
+			private var peAlgorithm:BlurAlg = null;
+		
+			public static function GetBlurPanel():BlurPanel
+			{
+				if (inst == null)
+				{
+					inst = new BlurPanel;
+				}
+				inst.CreateAlgorithm();
+				return inst;
+			}
+			
+			public function SetBitmap(data:Bitmap):void
+			{
+				peAlgorithm.data = data;
+			}
+			
+			private function CreateAlgorithm():void
+			{
+				peAlgorithm = new BlurAlg;
+			}
+			
+			private function OnHsPress():void
+			{
+				slideClick = true;
+			}
+			
+			private function OnHsChange():void
+			{
+				peAlgorithm.Test(hs_value.value);
+			}
+			
+			private function OnHsRelease():void
+			{
+				slideClick = false;
+			}
+			
+			override public function CanDrag(mx:Number, my:Number):Boolean
+			{
+				return !slideClick;
+			}
+			
+			private function OnClose():void
+			{
+				peAlgorithm.Execute();
+				EndAlgorithm();
+				dispatchEvent(new Event("closePanel"));
+			}
+			
+			private function EndAlgorithm():void
+			{
+				hs_value.value = 0;
+				peAlgorithm = null;
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="titlePanel" x="0" y="0" width="218" height="33" backgroundColor="#646464" borderStyle="solid">
+		<mx:Label x="10" y="6" text="Blur" color="#FF0000" fontSize="12"/>
+		<mx:Button x="195" y="11" label="Close" width="15" height="11" click="OnClose()"/>
+	</mx:Canvas>
+
+	<mx:HSlider id="hs_value" width="100%" minimum="0" maximum="10" dataTipPrecision="0" dataTipOffset="1" snapInterval="1"
+		value="0" allowTrackClick="false" liveDragging="true"
+		thumbPress="OnHsPress()" thumbRelease="OnHsRelease()" change="OnHsChange()" y="50"/>
+	
+</DragPanel>
