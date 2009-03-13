@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:btp="com.Roxio.PhotoStar.UI.Bottom.*"
+	xmlns:ltp="com.Roxio.PhotoStar.UI.Left.*"
+	xmlns:ep="com.Roxio.PhotoStar.UI.EditPanel.*"
+	creationComplete="MainPageLoad()"
+	backgroundColor="0x000000"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+			import mx.events.EffectEvent;
+			import mx.effects.Fade;
+			import mx.effects.Parallel;
+			import mx.effects.Zoom;
+			import mx.controls.Image;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			
+			private const BOTTOM_PANEL_HEIGHT:int = 80;	// actually it's 87
+			private const LEFT_PANEL_WIDTH:int = 318;
+			
+			private var _newTargetLoadAnimCallBackFn:Function;
+			
+			private var _loadingAnimImage:Image;
+			private var _loadingAnimBitmap:Bitmap;
+			
+			public function maskApp(en:Boolean):void
+			{
+				if (en == true)
+				{
+					this.setChildIndex(app_mask, this.numChildren - 1);
+				}
+				app_mask.visible = en;
+			}
+			
+			public function loadNewTarget(callBackFn:Function):void
+			{
+				_newTargetLoadAnimCallBackFn = callBackFn;
+				
+				maskApp(true);
+				
+				_loadingAnimBitmap = new Bitmap(main_panel.imageData.clone(), "auto", true);
+				_loadingAnimImage = new Image;
+				_loadingAnimImage.source = _loadingAnimBitmap;
+				_loadingAnimImage.x = main_panel.x + main_panel.imageStartX;
+				_loadingAnimImage.y = main_panel.y + main_panel.imageStartY;
+				_loadingAnimImage.width = main_panel.imageStartWidth;
+				_loadingAnimImage.height = main_panel.imageStartHeight;
+				this.addChild(_loadingAnimImage);
+				
+				var startWidth:Number = MainUIController.appWidth * 1.5;
+				var startHeight:Number = MainUIController.appHeight * 1.5;
+				
+				var para:Parallel = new Parallel;
+				para.addEventListener(EffectEvent.EFFECT_END, OnNewTargetLoadEnd, false, 0, true);
+				
+				var zoom:Zoom = new Zoom;
+				zoom.target = _loadingAnimImage;
+				zoom.zoomWidthTo = startWidth / _loadingAnimImage.width;
+				zoom.zoomHeightTo = startHeight / _loadingAnimImage.height;
+				zoom.duration = 700;
+				para.addChild(zoom);
+				
+				var fade:Fade = new Fade;
+				fade.target = _loadingAnimImage;
+				fade.alphaFrom = 1;
+				fade.alphaTo = 0;
+				fade.duration = zoom.duration;
+				para.addChild(fade);
+				
+				para.play();
+			}
+			
+			private function OnNewTargetLoadEnd(event:EffectEvent):void
+			{
+				_loadingAnimBitmap.bitmapData.dispose();
+				_loadingAnimBitmap = null;
+				this.removeChild(_loadingAnimImage);
+				_loadingAnimImage = null;
+				
+				maskApp(false);
+				
+				_newTargetLoadAnimCallBackFn();
+			}
+			
+			private function MainPageLoad():void
+			{
+				var animController:LoadAnimController = new LoadAnimController(LoadEnd);
+				animController.addDisplayObject(bottom_panel);
+				animController.addDisplayObject(left_panel);
+				animController.addDisplayObject(main_panel);
+				animController.loadObjects();
+			}
+			
+			private function LoadEnd():void
+			{
+				this.setChildIndex(main_panel, 0);
+				MainUIController.mainPage = this;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Metadata>
+        [ResourceBundle("AppString")]
+    </mx:Metadata>
+	
+	<ltp:LeftPanel id="left_panel" x="0" y="0" visible="false"
+		width="{LEFT_PANEL_WIDTH}" height="{this.height - bottom_panel.height}"/>
+		
+	<btp:BottomPanel id="bottom_panel" x="0" y="{this.height - BOTTOM_PANEL_HEIGHT}" visible="false"
+		width="100%" height="{BOTTOM_PANEL_HEIGHT}"/>
+		
+	<ep:MainEditPanel id="main_panel" x="{left_panel.x + left_panel.width}" y="0" visible="false"
+		width="{this.width - left_panel.width}" height="{this.height - bottom_panel.height}"/>
+		
+	<mx:Canvas id="app_mask" x="0" y="0" width="100%" height="100%" visible="false"
+		backgroundColor="0x000000" backgroundAlpha="0"/>
+	
+</mx:Canvas>

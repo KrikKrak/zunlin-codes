@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundImage="@Resource(key='MainFunctionPanelBackground', bundle='AppPic')" backgroundSize="100%"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			
+			private const BUTTON_WIDTH:int = 120;
+			private const BUTTON_HEIGHT:int = 40
+			private const BUTTON_Y:int = 15;
+			
+			private function OnImport():void
+			{
+				MainUIController.showImportPanel();
+			}
+		
+			private function OnEdit():void
+			{
+				MainUIController.showEditPanel();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button id="import_bottom" label="{resourceManager.getString('AppString', 'MFP_Import')}"
+		x="20" y="{BUTTON_Y}" width="{BUTTON_WIDTH}" height="{BUTTON_HEIGHT}" click="OnImport()" textAlign="right"/>
+	<mx:Button id="edit_buttom" label="{resourceManager.getString('AppString', 'MFP_Edit')}"
+		x="183" y="{BUTTON_Y}" width="{BUTTON_WIDTH}" height="{BUTTON_HEIGHT}" click="OnEdit()" textAlign="right"
+		enabled="{GlobeSetting.isDataLoad}"/>
+	<mx:Button id="design_buttom" label="{resourceManager.getString('AppString', 'MFP_Design')}"
+		x="362" y="{BUTTON_Y}" width="{BUTTON_WIDTH}" height="{BUTTON_HEIGHT}" textAlign="right"
+		enabled="{GlobeSetting.isDataLoad}"/>
+	<mx:Button id="export_buttom" label="{resourceManager.getString('AppString', 'MFP_Export')}"
+		x="536" y="{BUTTON_Y}" width="{BUTTON_WIDTH}" height="{BUTTON_HEIGHT}" textAlign="right"
+		enabled="{GlobeSetting.isDataLoad}"/>
+	
+</mx:Canvas>

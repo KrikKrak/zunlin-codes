@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SubFunctionPanel xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="com.Roxio.PhotoStar.UI.Left.*"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="auto" horizontalScrollPolicy="off"
+	creationComplete="Init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			
+			private const SUB_PANEL_WIDTH:int = 250;
+			private const SUB_PANEL_HEIGHT:int = 100;
+			
+			private function Init():void
+			{
+				InitSubPanelArray();
+			}
+			
+			protected override function InitSubPanelArray():void
+			{
+				// add all button and realting panel to the array pair
+				_subPanelArray = new ArrayCollection;
+				_subPanelArray.addItem(imp_roxio);
+				_subPanelArray.addItem(imp_hard);
+				_subPanelArray.addItem(imp_other);
+				_subPanelArray.addItem(imp_demo);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button id="imp_roxio" label="Roxio.tv" x="{(this.width - SUB_PANEL_WIDTH) / 2}" y="10"
+		width="{SUB_PANEL_WIDTH}" height="{SUB_PANEL_HEIGHT}" visible="false"/>
+		
+	<mx:Button id="imp_hard" label="Computer" x="{(this.width - SUB_PANEL_WIDTH) / 2}" y="120"
+		width="{SUB_PANEL_WIDTH}" height="{SUB_PANEL_HEIGHT}" visible="false"/>
+		
+	<mx:Button id="imp_other" label="Other" x="{(this.width - SUB_PANEL_WIDTH) / 2}" y="230"
+		width="{SUB_PANEL_WIDTH}" height="{SUB_PANEL_HEIGHT}" visible="false"/>
+		
+	<mx:Button id="imp_demo" label="Demo" x="{(this.width - SUB_PANEL_WIDTH) / 2}" y="340"
+		width="{SUB_PANEL_WIDTH}" height="{SUB_PANEL_HEIGHT}" visible="false"
+		click="{MainUIController.loadDemoPhoto()}"/>
+	
+</SubFunctionPanel>

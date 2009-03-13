@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ep="com.Roxio.PhotoStar.UI.EditPanel.*"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	resize="OnPanelResize(event)"
+	backgroundColor="0xff8000" backgroundAlpha="0.0">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Mode.TargetProcessEvent;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.IOverAdjustPanel;
+			import mx.core.UIComponent;
+			import mx.events.ResizeEvent;
+			import mx.events.EffectEvent;
+			import mx.effects.Fade;
+			import mx.effects.Parallel;
+			import mx.effects.Zoom;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			
+			private const ZOOM_PANEL_WIDTH:int = 225;
+			private const ZOOM_PANEL_HEIGHT:int = 57;
+			
+			private var _callBackFn:Function;
+			private var _imageHolder:ImageHolder;
+			private var _curOverAdjustPanel:IOverAdjustPanel;
+		
+			public function startLoad(loadEndCallBackFn:Function):Boolean
+			{
+				_callBackFn = loadEndCallBackFn;
+				
+				this.visible = true;
+				
+				var startWidth:Number = MainUIController.appWidth * 1.2;
+				var startHeight:Number = MainUIController.appHeight * 1.2;
+				
+				var para:Parallel = new Parallel;
+				para.addEventListener(EffectEvent.EFFECT_END, OnLoadEnd, false, 0, true);
+				
+				var zoom:Zoom = new Zoom;
+				zoom.target = this;
+				zoom.zoomWidthFrom = startWidth / this.width;
+				zoom.zoomHeightFrom = startHeight / this.height;
+				zoom.duration = 10;
+				para.addChild(zoom);
+				
+				var fade:Fade = new Fade;
+				fade.target = this;
+				fade.alphaFrom = 0;
+				fade.alphaTo = 1;
+				fade.duration = zoom.duration;
+				para.addChild(fade);
+				
+				para.play();
+				
+				return true;
+			}
+			
+			public function startHide(hideEndCallBackFn:Function):Boolean
+			{
+				return true;
+			}
+			
+			public function get imageHolder():ImageHolder
+			{
+				return _imageHolder;
+			}
+			
+			public function get imageHolderWidth():Number
+			{
+				return _imageHolder.width;
+			}
+			
+			public function get imageHolderHeight():Number
+			{
+				return _imageHolder.height;
+			}
+			
+			public function get imageStartWidth():Number
+			{
+				return _imageHolder.bitmap.width;
+			}
+			
+			public function get imageStartHeight():Number
+			{
+				return _imageHolder.bitmap.height;
+			}
+			
+			public function get imageStartX():Number
+			{
+				return _imageHolder.bitmap.x;
+			}
+			
+			public function get imageStartY():Number
+			{
+				return _imageHolder.bitmap.y;
+			}
+			
+			public function get imageData():BitmapData
+			{
+				if (_imageHolder != null)
+				{
+					return _imageHolder.bitmapData;
+				}
+				else
+				{
+					return null;
+				}
+			}
+			
+			public function set enableZoom(val:Boolean):void
+			{
+				if (zoom_panel.visible == val)
+				{
+					return;
+				}
+				
+				zoom_panel.visible = val;
+				
+				if (val == false)
+				{
+					FitImageSize();
+				}
+				else
+				{
+					this.setChildIndex(zoom_panel, this.numChildren - 1);
+				}
+			}
+			
+			public function addAdjustAreaPanel(uic:UIComponent):void
+			{
+				if (this.contains(uic) == false)
+				{
+					this.addChild(uic);
+					this.setChildIndex(zoom_panel, this.numChildren - 1);
+					
+					_curOverAdjustPanel = uic as IOverAdjustPanel;
+				}
+			}
+			
+			public function removeAdjustAreaPanel(uic:UIComponent):void
+			{
+				if (this.contains(uic) == true)
+				{
+					this.removeChild(uic);
+					_curOverAdjustPanel = null;
+				}
+			}
+			
+			private function OnLoadEnd(event:EffectEvent):void
+			{
+				_callBackFn();
+			}
+			
+			public function loadNewTarget(data:BitmapData):void
+			{
+				if (_imageHolder == null)
+				{
+					_imageHolder = new ImageHolder(data);
+					_imageHolder.addEventListener(TargetProcessEvent.TARGET_CHANGE, OnTargetChange, false, 0, true);
+					this.addChild(_imageHolder);
+				}
+				else
+				{
+					_imageHolder.changeBitmapData(data);
+				}
+				_imageHolder.x = 0;
+				_imageHolder.y = 0;
+				FitImageSize();
+				
+				MainUIController.showNewTargetLoadingAnim(OnLoadAnimEnd);
+			}
+			
+			private function OnLoadAnimEnd():void
+			{
+				MainUIController.showEditPanel();
+				enableZoom = true;
+			}
+			
+			private function FitImageSize():void
+			{
+				if (_imageHolder != null && this.contains(_imageHolder))
+				{
+					_imageHolder.newSize(this.width, this.height);
+					UpdateZoomPanel(_imageHolder.bitmapScale);
+				}
+			}
+			
+			private function OnPanelResize(event:ResizeEvent):void
+			{
+				if (_imageHolder != null && this.contains(_imageHolder))
+				{
+					_imageHolder.updateHolderSize(this.width, this.height);
+					UpdateZoomPanel(_imageHolder.bitmapScale);
+				}
+			}
+			
+			private function OnTargetChange(event:TargetProcessEvent):void
+			{
+				FitImageSize();
+			}
+			
+			private function UpdateZoomPanel(val:Number):void
+			{
+				if (val >= 1)
+				{
+					var min:int = 50;
+					var max:int = int(val) * 300;
+				}
+				else
+				{
+					min = int(val * 10) * 10 / 2;
+					max = 300;
+				}
+				zoom_panel.initZoom(min, max, val * 100, OnZoomChange);
+			}
+			
+			private function OnZoomChange(val:Number):void
+			{
+				if (_imageHolder != null)
+				{
+					_imageHolder.bitmapScale = val / 100;
+					
+					if (_curOverAdjustPanel != null)
+					{
+						_curOverAdjustPanel.updatePanelSize();
+					}
+				}
+			}
+
+		]]>
+	</mx:Script>
+	
+	<ep:ZoomPanel id="zoom_panel" x="{this.width - ZOOM_PANEL_WIDTH}" y="{this.height - ZOOM_PANEL_HEIGHT}"
+		width="{ZOOM_PANEL_WIDTH}" height="{ZOOM_PANEL_HEIGHT}"
+		visible="false"/>
+	
+</mx:Canvas>

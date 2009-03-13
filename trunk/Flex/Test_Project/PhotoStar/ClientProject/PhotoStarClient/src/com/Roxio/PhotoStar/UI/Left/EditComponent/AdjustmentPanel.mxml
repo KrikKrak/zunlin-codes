@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditFunctionPanel xmlns="com.Roxio.PhotoStar.UI.Left.EditComponent.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IStyleChangeObject">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.StandardAdjustAlg;
+			import com.Roxio.OnlineObject.DebugTool.TraceTool;
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+		
+			private const MIN_ADJ_VALUE:int = -100;
+			private const MAX_ADJ_VALUE:int = 100;
+			private const SLIDE_WIDTH:int = 115;
+			
+			[Bindable]
+			private var _algInst:StandardAdjustAlg;
+		
+			public function updateStyle():void
+			{
+				this.setStyle("backgroundImage", resourceManager.getClass("AppPic", "AdjustmentBg"));
+			}
+			
+			override public function ready2Close():void
+			{
+				TraceTool.Trace("AdjustmentPanel -- ready2Close");
+				
+				if (_algInst != null)
+				{
+					if (GlobeSetting.done4Close == true)
+					{
+						_algInst.execute();
+						RestoreAdjValue();
+						_algInst = null;
+					}
+					else
+					{
+						CancelAdj();
+					}
+				}
+			}
+			
+			private function OnAdjustmentChange():void
+			{
+				if (_algInst == null)
+				{
+					_algInst = new StandardAdjustAlg;
+					_algInst.data = MainUIController.imageHolder.bitmap;
+				}
+
+				_algInst.test(hs_Brightness.value, hs_Contrast.value, hs_Saturation.value, hs_Hue.value);
+			}
+			
+			private function RestoreAdjValue():void
+			{
+				hs_Brightness.value = 0;
+				hs_Contrast.value = 0;
+				hs_Saturation.value = 0;
+				hs_Hue.value = 0;
+			}
+			
+			private function CancelAdj():void
+			{
+				RestoreAdjValue();
+				_algInst.test(hs_Brightness.value, hs_Contrast.value, hs_Saturation.value, hs_Hue.value);
+				_algInst = null;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Label x="10" y="34" text="{resourceManager.getString('AppString', 'AP_Brightness')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Brightness" x="10" y="51" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnAdjustmentChange()"/>
+		
+	<mx:Label x="10" y="72" text="{resourceManager.getString('AppString', 'AP_Contrast')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Contrast" x="149" y="51" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnAdjustmentChange()"/>
+		
+	<mx:Label x="150" y="34" text="{resourceManager.getString('AppString', 'AP_Saturation')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Saturation" x="10" y="88" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnAdjustmentChange()"/>
+		
+	<mx:Label x="150" y="72" text="{resourceManager.getString('AppString', 'AP_Hue')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Hue" x="149" y="88" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnAdjustmentChange()"/>
+	
+	<mx:Button x="201" y="3" label="Discard" click="CancelAdj()" enabled="{_algInst != null}"/>
+	
+</EditFunctionPanel>

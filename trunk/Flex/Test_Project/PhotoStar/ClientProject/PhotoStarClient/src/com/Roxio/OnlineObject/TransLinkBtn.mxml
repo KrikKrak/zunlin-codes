@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:LinkButton xmlns:mx="http://www.adobe.com/2006/mxml"
+	overSkin="@Resource(key='TransparentBackground', bundle='AppPic')"
+	upSkin="@Resource(key='TransparentBackground', bundle='AppPic')"
+	downSkin="@Resource(key='TransparentBackground', bundle='AppPic')"
+	color="0xBBBBBB" textRollOverColor="0xFFFFFF" textSelectedColor="0xFFFFFF"
+	>
+	
+</mx:LinkButton>
