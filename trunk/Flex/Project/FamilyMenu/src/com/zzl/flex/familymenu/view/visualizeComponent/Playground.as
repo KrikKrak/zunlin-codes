@@ -54,7 +54,6 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 		{
 			_isPlaying = true;
 			_startTime = getTimer();
-			trace("Playground, start: " + _startTime);
 		}
 		
 		protected function OnEnterFrame(e:Event):void

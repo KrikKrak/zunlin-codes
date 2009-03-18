@@ -12,7 +12,8 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 	public class DishBall extends BasicBall
 	{
 		private var _dish:DishDetail;
-		private var _targetMode:Boolean = false;
+		private var _mainTargetMode:Boolean = false;
+		private var _minorTargetMode:Boolean = false;
 		
 		public function DishBall(size:Number, color:uint, dish:DishDetail = null)
 		{
@@ -21,6 +22,7 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 			_dish = dish;
 			
 			this.addEventListener(MouseEvent.MOUSE_OUT, OnMouseOut, false, 0, true);
+			this.addEventListener(MouseEvent.MOUSE_OVER, OnMouseOver, false, 0, true);
 			this.addEventListener(MouseEvent.CLICK, OnMouseClick, false, 0, true);
 		}
 		
@@ -33,24 +35,55 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 			g.endFill();
 		}
 		
+		public function traceSelf():void
+		{
+			trace("DishBall:", _dish.id, "vy:", _vy, "y:", y);
+		}
+		
+		public function isBallByID(id:String):Boolean
+		{
+			return (_dish.id == id);
+		}
+		
 		public function get dish():DishDetail
 		{
 			return _dish;
 		}
 		
-		public function releaseTarget():void
+		public function get isMainTarget():Boolean
 		{
-			_targetMode = false;
+			return _mainTargetMode;
 		}
 		
-		public function activeTarget():void
+		public function get isMinorTarget():Boolean
 		{
-			
+			return _minorTargetMode;
+		}
+		
+		public function get isTarget():Boolean
+		{
+			return (_mainTargetMode || _minorTargetMode);
+		}
+		
+		public function releaseTarget():void
+		{
+			_mainTargetMode = false;
+			_minorTargetMode = false;
+		}
+		
+		public function activeTarget(mainTarget:Boolean):void
+		{
+			_mainTargetMode = mainTarget;
+			_minorTargetMode = !mainTarget;
+		}
+		
+		private function OnMouseOver(e:MouseEvent):void
+		{
 		}
 		
 		private function OnMouseOut(e:MouseEvent):void
 		{
-			if (_targetMode == false)
+			if (isTarget == false)
 			{
 				_vy += -8;
 			}
@@ -58,7 +91,6 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 		
 		private function OnMouseClick(e:MouseEvent):void
 		{
-			_targetMode = true;
 			var ne:VisualDataTargetPickEvent = new VisualDataTargetPickEvent(VisualDataTargetPickEvent.E_VISUAL_DATA_TARGET_PICK);
 			dispatchEvent(ne);
 		}
