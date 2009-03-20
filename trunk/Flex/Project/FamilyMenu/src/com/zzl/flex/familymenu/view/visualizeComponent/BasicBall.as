@@ -132,7 +132,7 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 		public function initPhysics(g:Number, f:Number, b:Number):void
 		{
 			_gravity = g;
-			_friction = g;
+			_friction = f;
 			_bouncy = b;
 		}
 

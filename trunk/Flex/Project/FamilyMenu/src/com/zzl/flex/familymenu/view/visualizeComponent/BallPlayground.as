@@ -2,7 +2,6 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 {
 	import com.zzl.flex.familymenu.model.DishDetail;
 	import com.zzl.flex.familymenu.model.customEvent.VisualDataTargetMouseEvent;
-	import com.zzl.flex.familymenu.model.customEvent.VisualDataTargetPickEvent;
 	
 	import flash.display.Graphics;
 	import flash.events.Event;
@@ -20,6 +19,10 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 		private var _ballMap:Dictionary;
 		private var _g:Graphics;
 		private var _dishInfoPanel:DishBallDetailPanel;
+		
+		private var _mainTargetInPosition:Boolean = false;
+		private var _minorTargetsInPosition:Boolean = false;
+		private var _isTargetDraging:Boolean = false;
 
 		private const EASING_VALUE:Number = 0.2;
 
@@ -49,9 +52,11 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 				var b:DishBall = new DishBall(dish.rate * 5 + 10, Math.random() * 0xFFFFFF, dish);
 				b.initParam(Math.random() * _playgroundWidth, -b.ballSize * 2, Math.random() * BALL_COME_IN_DURATION);
 				b.initPhysics(GRAVITY, FRICTION, BOUNCY);
-				b.addEventListener(VisualDataTargetPickEvent.E_VISUAL_DATA_TARGET_PICK, OnDishBallClick, false, 0, true);
+				b.addEventListener(VisualDataTargetMouseEvent.E_VISUAL_DATA_TARGET_MOUSE_CLICK, OnDishBallClick, false, 0, true);
 				b.addEventListener(VisualDataTargetMouseEvent.E_VISUAL_DATA_TARGET_MOUSE_OUT, OnDishBallMouseOut, false, 0, true);
 				b.addEventListener(VisualDataTargetMouseEvent.E_VISUAL_DATA_TARGET_MOUSE_OVER, OnDishBallMouseOver, false, 0, true);
+				b.addEventListener(VisualDataTargetMouseEvent.E_VISUAL_DATA_TARGET_MOUSE_START_DRAG, OnDishBallMouseStartDrag, false, 0, true);
+				b.addEventListener(VisualDataTargetMouseEvent.E_VISUAL_DATA_TARGET_MOUSE_END_DRAG, OnDishBallMouseEndDrag, false, 0, true);
 				_balls.addItem(b);
 
 				// create id-ball map
@@ -76,7 +81,8 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 		
 		private function OnDishBallMouseOver(e:Event):void
 		{
-			if (e.target is DishBall)
+			trace(_isTargetDraging);
+			if (e.target is DishBall && _isTargetDraging == false)
 			{
 				if (_dishInfoPanel == null)
 				{
@@ -88,6 +94,20 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 				var xo:Number = PositionInfoPanel(d);
 				_dishInfoPanel.updateDishInfo(d.dish.name, d.dish.rate, d.dish.usedTimes, xo);
 			}
+		}
+		
+		private function OnDishBallMouseStartDrag(e:Event):void
+		{
+			if (e.target is DishBall)
+			{
+				_dishInfoPanel.visible = false;				
+				_isTargetDraging = true;
+			}
+		}
+		
+		private function OnDishBallMouseEndDrag(e:Event):void
+		{
+			_isTargetDraging = false;
 		}
 		
 		private function PositionInfoPanel(b:DishBall):Number
@@ -147,6 +167,9 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 
 		private function InitNewTarget():void
 		{
+			_mainTargetInPosition = false;
+			_minorTargetsInPosition = false;
+			
 			DeactiveOldTargets();
 
 			_mainTarget.gravity = 0;
@@ -209,18 +232,39 @@ package com.zzl.flex.familymenu.view.visualizeComponent
 
 		private function MoveMainTarget():void
 		{
-			var vy:Number = (_playgroundHeight / 2 - _mainTarget.y) * EASING_VALUE;
-			_mainTarget.y += vy;
+			if (_mainTargetInPosition == false)
+			{
+				var vy:Number = (_playgroundHeight / 3 - _mainTarget.y) * EASING_VALUE;
+				_mainTarget.y += vy;
+				
+				if (Math.abs(_mainTarget.y - _playgroundHeight / 3) < 0.1)
+				{
+					_mainTargetInPosition = true;
+				}
+			}
 		}
 
 		private function MoveMinorTargets():void
 		{
+			if (_minorTargetsInPosition == false)
+			{
+				_minorTargetsInPosition = true;
+				for each (var b:DishBall in _minorTargets)
+				{
+					var vy:Number = (_playgroundHeight * 2 / 3 - b.y) * EASING_VALUE;
+					b.y += vy;
+					
+					if (Math.abs(b.y - _playgroundHeight * 2 / 3) > 0.1)
+					{
+						_minorTargetsInPosition = false;
+					}
+				}
+			}
+			
 			_g.clear();
 			_g.lineStyle(1, 0xFFFFFF);
-			for each (var b:DishBall in _minorTargets)
+			for each (b in _minorTargets)
 			{
-				var vy:Number = (_playgroundHeight * 3 / 4 - b.y) * EASING_VALUE;
-				b.y += vy;
 				_g.moveTo(b.x, b.y);
 				_g.lineTo(_mainTarget.x, _mainTarget.y);
 			}
