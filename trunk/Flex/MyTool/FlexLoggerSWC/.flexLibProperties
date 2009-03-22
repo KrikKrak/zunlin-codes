@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flexLibProperties version="1">
+<includeClasses>
+<classEntry path="com.roxio.online.flexLogger.controller.ConstructHelper"/>
+<classEntry path="com.roxio.online.flexLogger.controller.LogManager"/>
+<classEntry path="com.roxio.online.flexLogger.controller.Logger"/>
+<classEntry path="com.roxio.online.flexLogger.model.LogLevel"/>
+<classEntry path="com.roxio.online.flexLogger.model.LogSetting"/>
+<classEntry path="com.roxio.online.flexLogger.model.LogStruct"/>
+<classEntry path="com.roxio.online.flexLogger.view.LogWnd"/>
+</includeClasses>
+<includeResources/>
+<namespaceManifests/>
+</flexLibProperties>
