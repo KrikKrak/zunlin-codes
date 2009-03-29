@@ -19,6 +19,8 @@
 		]]>
 	</mx:Script>
 	
+	<mx:Style source="yflexskin.css"/>
+	
 	<view:MainView id="mainView" width="100%" height="100%"/>
 	
 </mx:WindowedApplication>

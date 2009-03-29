@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:viewStage="com.zzl.flex.photoGallery.view.viewStage.*"
 	width="100%" height="100%"
 	verticalScrollPolicy="off" horizontalScrollPolicy="off"
 	creationComplete="OnViewCreationComplete()"
-	resize="OnAppResize()">
+	resize="OnAppResize()" xmlns:view="com.zzl.flex.photoGallery.view.*">
 	
 	<mx:Script>
 		<![CDATA[
+			
 			import mx.controls.Alert;
-			import com.zzl.flex.photoGallery.model.commands.SwitchCameraCommand;
+			
 			import com.zzl.flex.photoGallery.controller.MainController;
 			import com.zzl.flex.photoGallery.model.GlobeModelLocator;
 			import com.zzl.flex.photoGallery.model.DrivenMode;
+			
+			import com.zzl.flex.photoGallery.model.commands.SwitchCameraCommand;
+			import com.zzl.flex.photoGallery.model.commands.ReadDataCommand;
+			import com.zzl.flex.photoGallery.model.commands.LoadSourceManageWndCommand;
 		
 			private var _mainController:MainController = MainController.inst;
 			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
@@ -21,6 +27,7 @@
 			private var _lastFaceArea:Rectangle;
 			
 			private var _background:Bitmap;
+			private var _controlPanelEndX:Number;
 			
 			private const EASING_VALUE:Number = 0.2;
 			
@@ -35,17 +42,37 @@
 				_modelLocator.addEventListener(GlobeModelLocator.E_CAMERA_CAN_BE_ACCESSED_UPDATE, OnCameraAccessUpdate, false, 0, true);
 				_modelLocator.addEventListener(GlobeModelLocator.E_FACE_RECTS_UPDATE, OnFaceRectsUpdate, false, 0, true);
 				
+				_modelLocator.addEventListener(GlobeModelLocator.E_SOURCE_LOAD_STATUS_UPDATE, OnSourceLoadUpdate, false, 0, true);
+				
 				this.addEventListener(MouseEvent.MOUSE_MOVE, OnMouseMove, false, 0, true);
 				this.addEventListener(MouseEvent.MOUSE_WHEEL, OnMouseWheel, false, 0, true);
 				
 				CreateSpotlight();
+				InitControlPanel();
 				
-				InitPlane();
+				var c:ReadDataCommand = new ReadDataCommand(_modelLocator.dataSource);
+				_mainController.handleCommand(ReadDataCommand.C_READ_DATA, c);
 			}
 			
 			private function OnAppResize():void
 			{
 				CreateSpotlight();
+			}
+			
+			private function OnSourceLoadUpdate(e:Event):void
+			{
+				if (_modelLocator.sourceLoadStatus == GlobeModelLocator.SOURCE_LOADING)
+				{
+					
+				}
+				else if (_modelLocator.sourceLoadStatus == GlobeModelLocator.SOURCE_LOAD_FINISHED)
+				{
+					
+				}
+				else
+				{
+					
+				}
 			}
 			
 			private function UpdateDriven():void
@@ -82,29 +109,10 @@
 			
 			private function OnEnterFrame(e:Event):void
 			{
-				if (this.transform == null || this.transform.perspectiveProjection == null)
+				// move control panel
+				if (Math.abs(controlPanel.x - _controlPanelEndX) > 0.01)
 				{
-					return;
-				}
-				
-				// easing projection center
-				if (_modelLocator.projectionCenter != null)
-				{
-					var p:PerspectiveProjection = this.transform.perspectiveProjection;
-					if (p.projectionCenter.x != _modelLocator.projectionCenter.x || p.projectionCenter.y != _modelLocator.projectionCenter.y)
-					{
-						var vx:Number = ( _modelLocator.projectionCenter.x - p.projectionCenter.x) * EASING_VALUE;
-						var vy:Number = ( _modelLocator.projectionCenter.y - p.projectionCenter.y) * EASING_VALUE;
-						p.projectionCenter = new Point(p.projectionCenter.x + vx, p.projectionCenter.y + vy);
-						this.transform.perspectiveProjection = p;
-					}
-				}
-
-				// easing projection distance
-				if (mainFrame.z != _modelLocator.projectionDistance)
-				{
-					var v:Number = ( _modelLocator.projectionDistance - mainFrame.z) * EASING_VALUE;
-					mainFrame.z += v;
+					controlPanel.x += (_controlPanelEndX - controlPanel.x) * EASING_VALUE;
 				}
 			}
 			
@@ -217,11 +225,14 @@
 			
 			private function OnMouseWheel(e:MouseEvent):void
 			{
-				_modelLocator.projectionDistance += e.delta * 100;
+				_modelLocator.projectionDistance += e.delta * 50;
 			}
 			
 			private function UpdateZoomScale(val:Number):void
 			{
+				// do not use face-detector for z scale now
+				return;
+				
 				if (val > 0 && val < 1)
 				{
 					_modelLocator.projectionDistance = (1 - val) *1000;
@@ -240,9 +251,9 @@
 				var sl:Sprite = new Sprite;
 				
 				var fillType:String = GradientType.RADIAL;
-				var colors:Array = [0xFF000000, 0xFF300000];
+				var colors:Array = [0xFF000000, 0xFF200000];
 				var alphas:Array = [1, 1];
-				var ratios:Array = [50, 255];
+				var ratios:Array = [50, 150];
 				var matrix:Matrix = new Matrix;
 				matrix.createGradientBox(circleDim, circleDim, 0, 0, 0);
 				
@@ -275,73 +286,86 @@
 				}
 			}
 			
-			// test code begin
-			private function InitPlane():void
+			private function InitControlPanel():void
 			{
-				var _centerX:int = mainFrame.width / 2;
-				var _centerY:int = mainFrame.height / 2;
-				
-				var p:PerspectiveProjection = new PerspectiveProjection;
-				var pc:Point = new Point(_centerX, _centerY);
-				p.projectionCenter = pc;
-				p.fieldOfView = 45;
-				this.transform.perspectiveProjection = p;
-				
-				ca = new Canvas;
-				ca.width = 320;
-				ca.height = 240;
-				ca.setStyle("backgroundColor", Math.random() * 0x123456);
-				ca.x = _centerX + 160 + 20;
-				ca.y = _centerY + 120 + 20;
-				ca.z = 1.5 * 100;
-				ca.alpha = 1;
-				mainFrame.addChild(ca)
-				
-				var ca:Canvas = new Canvas;
-				ca.width = 320;
-				ca.height = 240;
-				ca.setStyle("backgroundColor", 0xFFFFFF);
-				ca.x = _centerX - 160;
-				ca.y = _centerY - 120;
-				ca.z = 2 * 100;
-				ca.alpha = 1;
-				mainFrame.addChild(ca);
-				
-				ca = new Canvas;
-				ca.width = 320;
-				ca.height = 240;
-				ca.setStyle("backgroundColor", 0xFF8000);
-				ca.x = _centerX - 320 - 20;
-				ca.y = _centerY - 240 - 20;
-				ca.z = 3 * 100;
-				ca.alpha = 1;
-				mainFrame.addChild(ca);
+				controlPanel.y = 0;
+				controlPanel.x = this.width - controlPanel.width + 5;
 			}
 			
+			private function OnControlPanelMouseOver(e:MouseEvent):void
+			{
+				_controlPanelEndX = this.width - controlPanel.width + 5;
+			}
 			
+			private function OnControlPanelMouseOut(e:MouseEvent):void
+			{
+				_controlPanelEndX = this.width - 5;
+			}
 			
-			// test code end
+			private function UpdateSource():void
+			{
+				if (source_test.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_TEST;
+				}
+				else if (source_local.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_LOCAL;
+				}
+				else if (source_rss.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_RSS;
+				}
+			}
+			
+			private function OnManageSource():void
+			{
+				var c:LoadSourceManageWndCommand = new LoadSourceManageWndCommand(true);
+				_mainController.handleCommand(LoadSourceManageWndCommand.C_LOAD_SOURCE_MANAGE_WND, c);
+			}
 			
 		]]>
 	</mx:Script>
 	
-	<mx:Canvas id="mainFrame" width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-		
-	</mx:Canvas>
-	
+	<viewStage:SpacePhotoView id="mainFrame" width="100%" height="100%"/>
+
 	<mx:Canvas id="cameraWnd" width="{GlobeModelLocator.CAMERA_WIDTH}" height="{GlobeModelLocator.CAMERA_HEIGHT}"
 		backgroundColor="0xff8000" visible="false"/>
 	<mx:Canvas id="faceAreaWnd" width="{cameraWnd.width}" height="{cameraWnd.height}"
 		visible="{cameraWnd.visible}"/>
-	
-	<mx:VBox id="drivenPanel" top="10" right="10">
-		<mx:RadioButtonGroup id="drivenChoiceGroup"/>
-		<mx:RadioButton id="face_driven" label="Face Driven" selected="false" groupName="drivenChoiceGroup"
-			color="#FFFFFF"
-			click="UpdateDriven()"/>
-		<mx:RadioButton id="mouse_driven" label="Mouse Driven" selected="true" groupName="drivenChoiceGroup"
-			color="#FFFFFF"
-			click="UpdateDriven()"/>
-	</mx:VBox>
+		
+	<mx:HBox id="controlPanel" height="100%"
+		cornerRadius="5" borderStyle="solid" borderColor="#FF8000" backgroundColor="#515151" backgroundAlpha="0.8"
+		mouseOver="OnControlPanelMouseOver(event)" mouseOut="OnControlPanelMouseOut(event)">
+		
+		<mx:Spacer width="5"/>
+		<mx:VBox width="100%" height="100%">
+			<mx:VBox id="drivenPanel" top="10" right="10">
+				<mx:RadioButtonGroup id="drivenChoiceGroup"/>
+				<mx:RadioButton id="face_driven" label="Face Driven" selected="false" groupName="drivenChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateDriven()"/>
+				<mx:RadioButton id="mouse_driven" label="Mouse Driven" selected="true" groupName="drivenChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateDriven()"/>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox id="sourcePanel" top="10" right="10">
+				<mx:RadioButtonGroup id="sourceChoiceGroup"/>
+				<mx:RadioButton id="source_test" label="Test file" selected="true" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:RadioButton id="source_local" label="Disk file" selected="false" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:RadioButton id="source_rss" label="RSS" selected="false" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:Button id="mgSource" label="Manage Source" click="OnManageSource()"/>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:Spacer width="5"/>
+	</mx:HBox>
 	
 </mx:Canvas>
