@@ -106,6 +106,20 @@ package com.zzl.flex.photoGallery.model
 		}
 		
 		//-------------------------------------------------------------------
+		// _entirLoadingProgress
+		private var _entirLoadingProgress:int;
+		public static const E_ENTIR_LOADING_PROGRESS_UPDATE:String = "Event_EntirLoadingProgressUpdate";
+		public function set entirLoadingProgress(val:int):void
+		{
+			_entirLoadingProgress = val;
+			dispatchEvent(new Event(E_ENTIR_LOADING_PROGRESS_UPDATE));
+		}
+		public function get entirLoadingProgress():int
+		{
+			return _entirLoadingProgress;
+		}
+		
+		//-------------------------------------------------------------------
 		// _drivenMode
 		private var _drivenMode:String = DrivenMode.DRIVEN_MODE_MOUSE;
 		public static const E_DRIVEN_MODE_UPDATE:String = "Event_DrivenModeUpdate";

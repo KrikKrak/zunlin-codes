@@ -38,15 +38,16 @@
 		
 		public function readData(paths:ArrayCollection):void
 		{
+			CleanLoaders();
 			_totalNumber = paths.length;
 			switch (_modelLocator.dataSource)
 			{
 				case GlobeModelLocator.DATA_SOURCE_LOCAL:
-					LoadImgFromRss(paths);
+					LoadImgFromLocal(paths);
 					break;
 					
 				case GlobeModelLocator.DATA_SOURCE_RSS:
-					LoadImgFromLocal(paths);
+					LoadImgFromRss(paths);
 					break;
 					
 				case GlobeModelLocator.DATA_SOURCE_TEST:
@@ -62,13 +63,14 @@
 		
 		private function LoadImgFromLocal(paths:ArrayCollection):void
 		{
-			
+			LoadImgFromTestFolder(paths);
 		}
 		
 		private function LoadImgFromTestFolder(paths:ArrayCollection):void
 		{
 			_photos = new ArrayCollection;
-			
+			_errorNumber = 0;
+			_doneNumber = 0;
 			for each(var p:String in paths)
 			{
 				var ur:URLRequest = new URLRequest(p);
@@ -137,13 +139,17 @@
 		private function OnTestFileLoadProgress(e:ProgressEvent):void
 		{
 			var li:LoaderInfo = e.target as LoaderInfo;
+			var n:int = 0;
 			for each (var p:BasicPhotoInfo in _photos)
 			{
 				if (li.loader == p.loader)
 				{
 					p.loadPercent = int(100 * e.bytesLoaded / e.bytesTotal);
 				}
+				
+				n += p.loadPercent;
 			}
+			_modelLocator.entirLoadingProgress = int(n / _photos.length);
 			
 			UpdateLoadStatus();
 		}
@@ -154,6 +160,30 @@
 			if (_doneNumber + _errorNumber == _totalNumber)
 			{
 				_modelLocator.sourceLoadStatus = (_doneNumber == 0) ? GlobeModelLocator.SOURCE_LOAD_ERROR : GlobeModelLocator.SOURCE_LOAD_FINISHED;
+			}
+		}
+		
+		private function CleanLoaders():void
+		{
+			if (_photos != null && _photos.length > 0)
+			{
+				for each (var p:BasicPhotoInfo in _photos)
+				{
+					if (p.loader != null)
+					{
+						// still in loader
+						(p.loader as Loader).close();
+						p.loader = null;
+					}
+					else
+					{
+						// load finish or load error
+						p.data.dispose();
+					}
+					p = null;
+				}
+				_photos.removeAll();
+				_photos = null;
 			}
 		}
 		

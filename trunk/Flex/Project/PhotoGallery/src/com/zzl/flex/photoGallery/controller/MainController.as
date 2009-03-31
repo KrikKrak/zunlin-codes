@@ -5,6 +5,8 @@
 	import com.zzl.flex.photoGallery.model.commands.*;
 	import com.zzl.flex.photoGallery.view.SourceManageWnd;
 	
+	import flash.events.Event;
+	
 	import mx.collections.ArrayCollection;
 	
 
@@ -23,6 +25,7 @@
 			if (_inst == null)
 			{
 				_inst = new MainController(new MainControllerCreator);
+				_inst.Init();
 			}
 			
 			return _inst;
@@ -47,6 +50,39 @@
 					break;
 			}
 		}
+		
+		private function Init():void
+		{
+			_modelLocator.addEventListener(GlobeModelLocator.E_DATA_SOURCE_UPDATE, OnDataSourceUpdate, false, 0, true);
+			_modelLocator.addEventListener(GlobeModelLocator.E_LOCAL_SOURCE_DATA_ARRAY_UPDATE, OnLocalDataUpdate, false, 0, true);
+			_modelLocator.addEventListener(GlobeModelLocator.E_RSS_DATA_ARRAY_UPDATE, OnRssUpdate, false, 0, true);
+		}
+		
+		private function OnDataSourceUpdate(e:Event):void
+		{
+			RefreshData();
+		}
+		
+		private function OnLocalDataUpdate(e:Event):void
+		{
+			if (_modelLocator.dataSource == GlobeModelLocator.DATA_SOURCE_LOCAL)
+			{
+				RefreshData();
+			}
+		}
+		
+		private function OnRssUpdate(e:Event):void
+		{
+			if (_modelLocator.dataSource == GlobeModelLocator.DATA_SOURCE_RSS)
+			{
+				RefreshData();
+			}
+		}
+		
+		private function RefreshData():void
+		{
+			ReadData(new ReadDataCommand(_modelLocator.dataSource));
+		}
 
 		private function SwitchCamera(c:SwitchCameraCommand):void
 		{
@@ -69,7 +105,7 @@
 			switch (c.dataSource)
 			{
 				case GlobeModelLocator.DATA_SOURCE_LOCAL:
-					_mainServiceLocator.resolveLocalFolderPaths(SourceReadCallbackFn);
+					_mainServiceLocator.resolveLocalFolderPaths(_modelLocator.localSourceDataArray, SourceReadCallbackFn);
 					break;
 					
 				case GlobeModelLocator.DATA_SOURCE_RSS:

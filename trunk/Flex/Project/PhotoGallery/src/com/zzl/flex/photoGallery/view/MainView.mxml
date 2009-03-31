@@ -36,12 +36,10 @@
 				this.addEventListener(Event.ENTER_FRAME, OnEnterFrame, false, 0, true);
 				
 				_modelLocator.addEventListener(GlobeModelLocator.E_DRIVEN_MODE_UPDATE, OnDrivenModeUpdate, false, 0, true);
-				_modelLocator.addEventListener(GlobeModelLocator.E_PROJECTION_CENTER_UPDATE, OnProjectionCenterUpdate, false, 0, true);
-				_modelLocator.addEventListener(GlobeModelLocator.E_PROJECTION_DISTANCE_UPDATE, OnProjectionDistanceUpdate, false, 0, true);
 				_modelLocator.addEventListener(GlobeModelLocator.E_CAMERA_STATUS_UPDATE, OnSwitchCameraUpdate, false, 0, true);
 				_modelLocator.addEventListener(GlobeModelLocator.E_CAMERA_CAN_BE_ACCESSED_UPDATE, OnCameraAccessUpdate, false, 0, true);
 				_modelLocator.addEventListener(GlobeModelLocator.E_FACE_RECTS_UPDATE, OnFaceRectsUpdate, false, 0, true);
-				
+				_modelLocator.addEventListener(GlobeModelLocator.E_ENTIR_LOADING_PROGRESS_UPDATE, OnLoadingProgressUpdate, false, 0, true);
 				_modelLocator.addEventListener(GlobeModelLocator.E_SOURCE_LOAD_STATUS_UPDATE, OnSourceLoadUpdate, false, 0, true);
 				
 				this.addEventListener(MouseEvent.MOUSE_MOVE, OnMouseMove, false, 0, true);
@@ -88,16 +86,6 @@
 				_drivenMode = _modelLocator.drivenMode;
 				face_driven.selected = (_drivenMode ==DrivenMode.DRIVEN_MODE_FACE);
 				mouse_driven.selected = !face_driven.selected;
-			}
-			
-			private function OnProjectionCenterUpdate(e:Event):void
-			{
-				//UpdateProjectionCenter(_modelLocator.projectionCenter);
-			}
-			
-			private function OnProjectionDistanceUpdate(e:Event):void
-			{
-				//UpdateProjectionCenter(_modelLocator.projectionCenter);
 			}
 			
 			private function UpdateProjectionCenter(point:Point):void
@@ -324,6 +312,11 @@
 				_mainController.handleCommand(LoadSourceManageWndCommand.C_LOAD_SOURCE_MANAGE_WND, c);
 			}
 			
+			private function OnLoadingProgressUpdate(e:Event):void
+			{
+				dlProgress.setProgress(_modelLocator.entirLoadingProgress, 100);
+			}
+			
 		]]>
 	</mx:Script>
 	
@@ -333,6 +326,9 @@
 		backgroundColor="0xff8000" visible="false"/>
 	<mx:Canvas id="faceAreaWnd" width="{cameraWnd.width}" height="{cameraWnd.height}"
 		visible="{cameraWnd.visible}"/>
+		
+	<mx:ProgressBar id="dlProgress" x="{this.width * 0.2}" y="{this.height - dlProgress.height - 10}"
+		width="{this.width * 0.6}" height="10" label="" mode="manual"/>
 		
 	<mx:HBox id="controlPanel" height="100%"
 		cornerRadius="5" borderStyle="solid" borderColor="#FF8000" backgroundColor="#515151" backgroundAlpha="0.8"
