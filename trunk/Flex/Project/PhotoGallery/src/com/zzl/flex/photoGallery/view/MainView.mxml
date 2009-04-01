@@ -239,7 +239,7 @@
 				var sl:Sprite = new Sprite;
 				
 				var fillType:String = GradientType.RADIAL;
-				var colors:Array = [0xFF000000, 0xFF200000];
+				var colors:Array = [0xFF000000, 0xFF100000];
 				var alphas:Array = [1, 1];
 				var ratios:Array = [50, 150];
 				var matrix:Matrix = new Matrix;

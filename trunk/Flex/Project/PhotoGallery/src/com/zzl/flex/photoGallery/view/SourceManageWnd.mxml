@@ -8,6 +8,7 @@
 
 	<mx:Script>
 		<![CDATA[
+			import com.zzl.flex.algorithm.CommonTools;
 		
 			import mx.collections.ArrayCollection;
 			
@@ -95,28 +96,23 @@
 			
 			private function SaveData():void
 			{
-				_model.localSourceDataArray = slwLocal.lsData;
-				_model.rssDataArray = slwRSS.lsData;
+				if (CommonTools.isSameSimpleArrayCollectionContent(_model.localSourceDataArray, slwLocal.lsData) == false)
+				{
+					_model.localSourceDataArray = slwLocal.lsData;
+				}
+				if (CommonTools.isSameSimpleArrayCollectionContent(_model.rssDataArray, slwRSS.lsData) == false)
+				{
+					_model.rssDataArray = slwRSS.lsData;
+				}
 			}
 			
 			private function PrepareContent():void
 			{
-				if (_model.localSourceDataArray == null)
-				{
-					_localFolders = new ArrayCollection;
-				}
-				else
-				{
-					_localFolders = _model.localSourceDataArray;
-				}
-				if (_model.rssDataArray == null)
-				{
-					_rssUrls = new ArrayCollection;
-				}
-				else
-				{
-					_rssUrls = _model.rssDataArray;
-				}
+				_localFolders = new ArrayCollection;
+				_rssUrls = new ArrayCollection;
+				
+				CommonTools.copySimpleArrayCollection(_localFolders, _model.localSourceDataArray);
+				CommonTools.copySimpleArrayCollection(_rssUrls, _model.rssDataArray);
 
 				slwLocal.lsData = _localFolders;
 				slwRSS.lsData = _rssUrls;

@@ -38,12 +38,23 @@ package com.zzl.flex.photoGallery.view.viewStage
 			this.addEventListener(Event.ENTER_FRAME, OnEnterFrame, false, 0, true);
 		}
 		
+		override protected function RemovePhotos():void
+		{
+			_preChildrenNum = 0;
+			_preStageZ = 0;
+			_modelLocator.projectionDistance = 0;
+			
+			super.RemovePhotos();
+		}
+		
 		override protected function UpdatePhotoPosition():void
 		{
 			if (_preChildrenNum != _photoChildren.length)
 			{
 				SortChildren();
 				_preChildrenNum = _photoChildren.length;
+				_preStageZ = 0;
+				_modelLocator.projectionDistance = 0;
 			
 				_initChildrenPosition.removeAll();
 				

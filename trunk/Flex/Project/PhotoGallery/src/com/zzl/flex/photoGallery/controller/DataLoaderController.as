@@ -160,6 +160,7 @@
 			if (_doneNumber + _errorNumber == _totalNumber)
 			{
 				_modelLocator.sourceLoadStatus = (_doneNumber == 0) ? GlobeModelLocator.SOURCE_LOAD_ERROR : GlobeModelLocator.SOURCE_LOAD_FINISHED;
+				_photos.removeAll();
 			}
 		}
 		
@@ -178,7 +179,7 @@
 					else
 					{
 						// load finish or load error
-						p.data.dispose();
+						//p.data.dispose();
 					}
 					p = null;
 				}

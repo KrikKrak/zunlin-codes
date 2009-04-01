@@ -76,6 +76,7 @@ package com.zzl.flex.photoGallery.view.viewStage
 			this.addEventListener(ResizeEvent.RESIZE, OnResize, false, 0, true);
 			
 			_modelLocator.addEventListener(GlobeModelLocator.E_PHOTO_LIST_UPDATE, OnPhotoListUpdate, false, 0, true);
+			_modelLocator.addEventListener(GlobeModelLocator.E_DATA_SOURCE_UPDATE, OnDataSourceUpdate, false, 0, true);
 			_modelLocator.addEventListener(GlobeModelLocator.E_PROJECTION_CENTER_UPDATE, OnProjectionCenterUpdate, false, 0, true);
 			_modelLocator.addEventListener(GlobeModelLocator.E_PROJECTION_DISTANCE_UPDATE, OnProjectionDistanceUpdate, false, 0, true);
 		}
@@ -100,6 +101,11 @@ package com.zzl.flex.photoGallery.view.viewStage
 		
 		protected function UpdatePhotoPosition():void
 		{
+		}
+		
+		protected function OnDataSourceUpdate(e:Event):void
+		{
+			RemovePhotos();
 		}
 		
 		protected function OnPhotoListUpdate(e:Event):void
@@ -141,6 +147,15 @@ package com.zzl.flex.photoGallery.view.viewStage
 			UpdatePhotoPosition();
 		}
 		
+		protected function RemovePhotos():void
+		{
+			for each (var p:CommonPhotoStage in _photoChildren)
+			{
+				RemovePhoto(p);
+			}
+			_photoChildren.removeAll();
+		}
+		
 		protected function RemovePhoto(p:CommonPhotoStage):void
 		{
 			if (_mainStage.contains(p))
@@ -148,6 +163,7 @@ package com.zzl.flex.photoGallery.view.viewStage
 				_mainStage.removeChild(p);
 			}
 			p.disposePhoto();
+			p = null;
 		}
 		
 	}

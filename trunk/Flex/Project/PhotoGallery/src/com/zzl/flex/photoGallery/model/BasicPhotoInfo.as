@@ -12,5 +12,11 @@ package com.zzl.flex.photoGallery.model
 		public var loadStatus:String;
 		public var loadPercent:int;
 		public var loader:Object;
+		
+		public function cleanUp():void
+		{
+			data.dispose();
+			data = null;
+		}
 	}
 }

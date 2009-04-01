@@ -1,9 +1,12 @@
 package com.zzl.flex.photoGallery.view.photoStage
 {
+	import caurina.transitions.Tweener;
+	
 	import com.zzl.flex.photoGallery.model.BasicPhotoInfo;
 	import com.zzl.flex.photoGallery.view.Reflector;
 	
 	import flash.display.Bitmap;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	
 	import mx.controls.Image;
@@ -13,6 +16,7 @@ package com.zzl.flex.photoGallery.view.photoStage
 	public class CommonPhotoStage extends Container
 	{
 		private var _photoInfo:BasicPhotoInfo;
+		private var _photoContainer:Container
 		private var _photo:Image;
 		private var _photoR:Reflector;
 		private var _loadPercent:Label;
@@ -31,6 +35,18 @@ package com.zzl.flex.photoGallery.view.photoStage
 			this.horizontalScrollPolicy = "off";
 			
 			this.addEventListener(Event.ENTER_FRAME, OnEnterFrame, false, 0, true);
+			
+			_photoContainer = new Container;
+			_photoContainer.verticalScrollPolicy = "off";
+			_photoContainer.horizontalScrollPolicy = "off";
+			this.addChild(_photoContainer);
+			
+			_photoR = new Reflector;
+			_photoR.target = _photoContainer;
+			_photoR.alpha = 0.6;
+			_photoR.falloff = 0.5;
+			_photoR.blurAmount = 0.3
+			this.addChild(_photoR);
 		}
 		
 		public function updateSize(w:int, h:int):void
@@ -141,11 +157,11 @@ package com.zzl.flex.photoGallery.view.photoStage
 				if (_loadPercent == null)
 				{
 					_loadPercent = new Label;
-					_loadPercent.setStyle("fontSize", "12");
+					_loadPercent.setStyle("fontSize", "36");
 					_loadPercent.setStyle("fontWeight", "bold");
 					_loadPercent.setStyle("color", "0xFF8000");
-					_loadPercent.width = 50;
-					_loadPercent.height = 20;
+					_loadPercent.width = 80;
+					_loadPercent.height = 80;
 					
 					this.addChild(_loadPercent);
 				}
@@ -169,21 +185,14 @@ package com.zzl.flex.photoGallery.view.photoStage
 		{
 			if (_photo != null)
 			{
-				if (this.contains(_photo))
+				if (_photoContainer.contains(_photo))
 				{
-					this.removeChild(_photo);
+					_photoContainer.removeChild(_photo);
 				}
-				_photo = null;
-			}
-			
-			if (_photoR != null)
-			{
-				if (this.contains(_photoR))
-				{
-					this.removeChild(_photoR);
-				}
-				_photoR.target = null;
-				_photoR = null;
+				_photo = null
+				
+				_photoInfo.cleanUp();
+				_photoR.invalidateDisplayList();
 			}
 		}
 		
@@ -202,17 +211,22 @@ package com.zzl.flex.photoGallery.view.photoStage
 			var bm:Bitmap = new Bitmap(_photoInfo.data);
 			_photo = new Image;
 			_photo.source = bm;
-			this.addChild(_photo);
+			_photoContainer.addChild(_photo);
 			
-			// put reflaction
-			_photoR = new Reflector;
-			_photoR.target = _photo;
-			_photoR.alpha = 0.6;
-			_photoR.falloff = 0.5;
-			_photoR.blurAmount = 0.3
-			this.addChild(_photoR);
-			
+			_photoR.target = _photoContainer;
+
 			PositionPhoto();
+			AnimLoadPhoto();
+		}
+
+		private function AnimLoadPhoto():void
+		{
+			if (_photo != null)
+			{
+				var ty:Number = _photo.y;
+				_photo.y += _photo.height;
+				Tweener.addTween(_photo, {y: ty, time: 2, transition: "easeOutExpo"});
+			}
 		}
 		
 		private function PositionPhoto():void
@@ -235,6 +249,15 @@ package com.zzl.flex.photoGallery.view.photoStage
 				_photo.x = (_imageAreaWidth - _photo.width) *0.5;
 				_photo.y = _imageAreaHeight - _photo.height;
 			}
+			
+			// update photocontainer size
+			_photoContainer.x = 0;
+			_photoContainer.y = 0;
+			_photoContainer.width = _imageAreaWidth;
+			_photoContainer.height = _imageAreaHeight;
+			
+			// relocate reflaction --  is this a bug? the relaction class should be put under target automatically
+			_photoR.y = _photoContainer.y + _photoContainer.height;
 		}
 		
 		private function OnEnterFrame(e:Event):void

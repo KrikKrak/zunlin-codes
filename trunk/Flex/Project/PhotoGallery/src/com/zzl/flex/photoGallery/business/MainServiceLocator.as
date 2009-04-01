@@ -56,7 +56,7 @@ package com.zzl.flex.photoGallery.business
 			_pathResolveCallbackFn = cb;
 			var a:ArrayCollection = new ArrayCollection;
 			var dPath:String = File.documentsDirectory.nativePath;
-			for (var i:int = 1; i < 12; ++i)
+			for (var i:int = 1; i < 3; ++i)
 			{
 				a.addItem("file:///" + dPath + "\\PhotoGalleryTestData\\a" + i.toString() + ".jpg");
 			}
