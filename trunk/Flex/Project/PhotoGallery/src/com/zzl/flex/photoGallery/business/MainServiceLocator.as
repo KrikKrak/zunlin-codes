@@ -10,6 +10,9 @@ package com.zzl.flex.photoGallery.business
 		
 		private var _pathResolveCallbackFn:Function;
 		
+		private var _rssNumber:int = 0;
+		private var _rssPaths:ArrayCollection;
+		
 		public static function get inst():MainServiceLocator
 		{
 			if (_inst == null)
@@ -22,9 +25,16 @@ package com.zzl.flex.photoGallery.business
 		
 		public function MainServiceLocator(val:MainServiceLocatorCreator){}
 		
-		public function resolveRssPaths(cb:Function):void
+		public function resolveRssPaths(paths:ArrayCollection, cb:Function):void
 		{
 			_pathResolveCallbackFn = cb;
+			_rssNumber = paths.length;
+			_rssPaths = new ArrayCollection;
+			for each (var path:String in paths)
+			{
+				var rssp:RSS2ParserHelp = new RSS2ParserHelp(RSSParseDone);
+				rssp.parseRSS2(path);
+			}
 		}
 		
 		public function resolveLocalFolderPaths(paths:ArrayCollection, cb:Function):void
@@ -85,6 +95,20 @@ package com.zzl.flex.photoGallery.business
 					return true;
 			}
 			return false;
+		}
+		
+		private function RSSParseDone(paths:ArrayCollection):void
+		{
+			--_rssNumber;
+			for each (var path:String in paths)
+			{
+				_rssPaths.addItem(path);
+			}
+			
+			if (_rssNumber == 0 && _pathResolveCallbackFn != null)
+			{
+				_pathResolveCallbackFn(_rssPaths);
+			}
 		}
 
 	}

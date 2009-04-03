@@ -58,7 +58,7 @@
 		
 		private function LoadImgFromRss(paths:ArrayCollection):void
 		{
-			
+			LoadImgFromTestFolder(paths);
 		}
 		
 		private function LoadImgFromLocal(paths:ArrayCollection):void
@@ -95,6 +95,7 @@
 		private function OnTestFileLoaded(e:Event):void
 		{
 			_doneNumber++;
+			trace("_doneNumber", _doneNumber);
 			
 			var li:LoaderInfo = e.target as LoaderInfo;
 			for each (var p:BasicPhotoInfo in _photos)
@@ -117,6 +118,7 @@
 		private function OnTestFileIOError(e:IOErrorEvent):void
 		{
 			_errorNumber++;
+			trace("_errorNumber", _errorNumber);
 			
 			var li:LoaderInfo = e.target as LoaderInfo;
 			for each (var p:BasicPhotoInfo in _photos)
@@ -150,6 +152,7 @@
 				n += p.loadPercent;
 			}
 			_modelLocator.entirLoadingProgress = int(n / _photos.length);
+			//trace(e.bytesLoaded, e.bytesTotal);
 			
 			UpdateLoadStatus();
 		}

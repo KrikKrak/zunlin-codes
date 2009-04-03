@@ -109,7 +109,7 @@
 					break;
 					
 				case GlobeModelLocator.DATA_SOURCE_RSS:
-					_mainServiceLocator.resolveRssPaths(SourceReadCallbackFn);
+					_mainServiceLocator.resolveRssPaths(_modelLocator.rssDataArray, SourceReadCallbackFn);
 					break;
 					
 				case GlobeModelLocator.DATA_SOURCE_TEST:
