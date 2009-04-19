@@ -1,3 +1,12 @@
+/**
+* iLog4Flex
+* 
+* iLog4Flex is flex runtime log component. A log windows can be loaded at runtime of flex application.
+* 
+* Author:	Zunlin Zhang
+* Data:		2009-04-19
+* Version:	Alpha 1.0s
+*/
 package com.zzl.iLog4Flex.controller
 {
 	import com.zzl.iLog4Flex.model.LogFilterSetting;
