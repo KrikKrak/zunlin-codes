@@ -10,13 +10,14 @@
 			private var a:Logger;
 			private function test():void
 			{
+				LogManager.inst.showTrace = false;
 				a = LogManager.inst.getLogger("class");
 				a.error("e", "e");
 				a.fine("f", "f");
 				a.debug("d", "d");
 				a.self();
 				
-				var t:Timer = new Timer(5000);
+				var t:Timer = new Timer(1000);
 				t.addEventListener(TimerEvent.TIMER, OnTimer);
 				t.start();
 			}

@@ -122,6 +122,12 @@
 					}
 
 					log_text.htmlText = logString;
+					log_text.validateNow();
+					
+					if (log_text.textHeight > log_text.height)
+					{
+						log_text.verticalScrollPosition = log_text.textHeight;
+					}
 				}
 			}
 			
