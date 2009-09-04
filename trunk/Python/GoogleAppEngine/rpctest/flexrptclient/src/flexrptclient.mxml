@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" creationComplete="OnInit()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.http.HTTPService;
+		
+			[Bindable]
+			private var resultStr:String;
+			
+			private var hs:HTTPService;
+			private var isCtrlHold:Boolean = false;
+			
+			private function OnInit():void
+			{
+				this.addEventListener(KeyboardEvent.KEY_DOWN, OnKeyDown);
+				this.addEventListener(KeyboardEvent.KEY_UP, OnKeyUp);
+				this.addEventListener(Event.ACTIVATE, OnActivate);
+				ip_focus.setFocus();
+			}
+			
+			private function OnActivate(e:Event):void
+			{
+				ip_focus.setFocus();
+			}
+			
+			private function sendit():void
+			{
+				hs = new HTTPService;
+				hs.url = "http://localhost:8083/submittest";
+				hs.method = "POST";
+				hs.addEventListener(FaultEvent.FAULT, OnFault);
+				hs.addEventListener(ResultEvent.RESULT, OnResult);
+				hs.request = {ip: "abc", feeling:"10"};
+				hs.send();
+			}
+			
+			private function getit():void
+			{
+				hs = new HTTPService;
+				hs.url = "http://localhost:8083/testdatabase";
+				hs.method = "GET";
+				hs.addEventListener(FaultEvent.FAULT, OnFault);
+				hs.addEventListener(ResultEvent.RESULT, OnResult);
+				hs.send();
+			}
+			
+			private function OnResult(e:ResultEvent):void
+			{
+				trace("on result");
+				resultStr = e.result.toString();
+			}
+			
+			private function OnFault(e:FaultEvent):void
+			{
+				trace("on fault");
+				resultStr = e.fault.faultString;
+			}
+			
+			private function OnKeyUp(e:KeyboardEvent):void
+			{
+				trace(e.keyCode, e.charCode, e.ctrlKey, "up");
+				if (e.keyCode == Keyboard.CONTROL)
+				{
+					isCtrlHold = false;
+					trace("isCtrlHold", isCtrlHold);
+				}
+			}
+			
+			private function OnKeyDown(e:KeyboardEvent):void
+			{
+				trace(e.keyCode, e.charCode, e.ctrlKey, "down");
+				if (e.keyCode == Keyboard.CONTROL)
+				{
+					isCtrlHold = true;
+					trace("isCtrlHold", isCtrlHold);
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TextArea id="ip_in" x="10" y="25" width="122" height="213" text="{resultStr}"/>
+	<mx:Button x="10" y="281" label="send" click="sendit()"/>
+	<mx:Button x="70" y="281" label="get" click="getit()"/>
+	
+	<mx:Canvas x="150" y="25" width="54" height="53" backgroundColor="#828282"
+		doubleClickEnabled="true" click="{trace('click');}" doubleClick="{trace('double click');}"/>
+
+	<mx:Canvas x="212" y="25" width="54" height="53" backgroundColor="#828282"
+		doubleClickEnabled="true" click="{trace('click');}" doubleClick="{trace('double click');}"/>
+
+	<mx:Canvas x="274" y="25" width="54" height="53" backgroundColor="#828282"
+		doubleClickEnabled="true" click="{trace('click');}" doubleClick="{trace('double click');}"/>
+
+	<mx:Canvas x="336" y="25" width="54" height="53" backgroundColor="#828282"
+		doubleClickEnabled="true" click="{trace('click');}" doubleClick="{trace('double click');}"/>
+
+	<mx:TextInput id="ip_focus" width="0" height="0" visible="false"/>
+	
+</mx:Application>
