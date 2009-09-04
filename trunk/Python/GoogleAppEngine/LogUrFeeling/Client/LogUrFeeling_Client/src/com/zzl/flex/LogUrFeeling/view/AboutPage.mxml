@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml"
+	layout="absolute"
+	width="100%" height="100%"
+	borderStyle="solid" borderThickness="3" cornerRadius="10" borderColor="#FF8000"
+	creationComplete="OnInit()" >
+	
+	<mx:Script>
+		<![CDATA[
+
+			private function OnInit():void
+			{
+				
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="topPanel" x="0" y="0" width="100%" height="20%" backgroundColor="0x333333">
+		<mx:Label id="topTxt" x="10" y="{(topPanel.height - topTxt.height) * 0.5}"
+			text="Thank you for using LogUrFeeling" color="#FFFFFF" fontSize="32"/>
+	</mx:Canvas>
+	
+	<mx:HBox id="middlePanel" x="0" y="{topPanel.height}" width="100%" height="60%" backgroundColor="0x333333"
+		horizontalAlign="center" verticalAlign="middle" horizontalGap="130">
+
+		
+	</mx:HBox>
+	
+	<mx:Canvas id="bottomPanel" x="0" y="{middlePanel.y + middlePanel.height}" width="100%" height="20%" backgroundColor="0x333333">
+		<mx:Label id="bottomTxt" x="{(bottomPanel.width  - bottomTxt.width) * 0.5}" y="{(bottomPanel.height - bottomTxt.height) * 0.5}"
+			text="Make Every Day Count!" color="#FFFFFF" fontSize="20"/>
+	</mx:Canvas>
+	
+</mx:Module>
