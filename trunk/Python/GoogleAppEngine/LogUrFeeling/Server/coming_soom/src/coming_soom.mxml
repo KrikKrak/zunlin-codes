@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+	layout="absolute"
+	backgroundColor="0x111111">
+	
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			[Embed(source="../assets/appengine-silver-120x30.gif")]
+			private var _appLogoSource:Class;
+		]]>
+	</mx:Script>
+	
+	<mx:Label id="lb_comingSoon"
+		x="{(this.width - lb_comingSoon.width) / 2}" y="{this.height / 3}"
+		text="LogUrFeeling is coming soon!" color="#FFFFFF" fontSize="36"/>
+	<mx:Image id="appLogo" x="{(this.width - appLogo.width) / 2}" y="{this.height - appLogo.height - 20}"
+		source="{_appLogoSource}"/>
+	
+</mx:Application>
