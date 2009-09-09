@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EventMap xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="http://mate.asfusion.com/">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.larryzzl.iBlog.event.ServiceEvent;
+			import com.larryzzl.iBlog.controller.MainController;
+		]]>
+	</mx:Script>
+	
+	<!--
+	<Debugger level="{Debugger.ALL}" />
+	-->
+	
+	<EventHandlers type="{ServiceEvent.READ_LATEST_ARTICLES}" debug="false">
+		<MethodInvoker generator="{MainController}" method="readLatestArticles"/>
+	</EventHandlers>
+
+</EventMap>

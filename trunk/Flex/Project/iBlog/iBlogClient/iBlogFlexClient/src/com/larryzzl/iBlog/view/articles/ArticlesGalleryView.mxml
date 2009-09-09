@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:commonComponent="com.larryzzl.iBlog.view.commonComponent.*"
+	width="100%" height="100%"
+	creationComplete="OnCreated()">
+	
+	<mx:Script>
+		<![CDATA[
+			import caurina.transitions.Tweener;
+			import mx.collections.SortField;
+			import mx.collections.Sort;
+			import mx.collections.ArrayCollection;
+			import com.larryzzl.iBlog.model.modelDef.BlogArticle;
+			import com.larryzzl.iBlog.model.MainModelLocator;
+			import mx.binding.utils.ChangeWatcher;
+			
+			private const SLIDER_PANEL_HEIGHT:int = 100;
+			private const ARTICLE_PANEL_WIDTH:int = 300;
+			private const ARTICLE_PANEL_HEIGHT:int = 300;
+			
+			private var _model:MainModelLocator = MainModelLocator.inst;
+			private var _localArticlesWatcher:ChangeWatcher;
+			private var _blogDateMap:ArrayCollection;
+			private var _currentSelectedArticleViews:ArrayCollection;
+			
+			private function OnCreated():void
+			{
+				_blogDateMap = new ArrayCollection;
+				_currentSelectedArticleViews = new ArrayCollection;
+				_localArticlesWatcher = ChangeWatcher.watch(_model, "localBlogArticles", OnLoaclArticlesChange);
+				
+				slider.addEventListener(TimeSlider.E_SLIDE_DRAG_END, OnSliderDragEnd, false, 0, true);
+			}
+			
+			private function OnLoaclArticlesChange(e:Event):void
+			{
+				if (galleryPanel != null) galleryPanel.removeAllChildren();
+				for each (var ba:BlogArticle in _model.localBlogArticles)
+				{
+					var articleView:ArticleView = new ArticleView;
+					articleView.articleTitle = ba.articleTitle;
+					articleView.articleBody = ba.articleBody;
+					articleView.articleId = ba.articleId;
+					articleView.x = Math.random() * (this.width - ARTICLE_PANEL_WIDTH);
+					articleView.y = Math.random() * (this.height - ARTICLE_PANEL_HEIGHT);
+					articleView.rotationZ = Math.random() * 360 - 180;
+					articleView.width = ARTICLE_PANEL_WIDTH;
+					articleView.height = ARTICLE_PANEL_HEIGHT;
+					articleView.scaleX = 0.5;
+					articleView.scaleY = 0.5;
+					articleView.alpha = 0.5;
+					articleView.canBeEdit = false;
+					articleView.addEventListener(ArticleView.E_ARTICLE_EDIT_END, OnArticleEditEnd, false, 0, true);
+					galleryPanel.addChild(articleView);
+					/*
+					Tweener.addTween(articleView, {x: Math.random() * (this.width - ARTICLE_PANEL_WIDTH),
+													y: Math.random() * (this.height - ARTICLE_PANEL_HEIGHT),
+													rotationZ: Math.random() * 360 - 180,
+													scaleX: 0.5,
+													scaleY: 0.5,
+													alpha: 0.5,
+													time: 0.5});
+					*/
+					_blogDateMap.addItem({date: ba.articleCreatedDate, view: articleView, slideIndex: 0});
+				}
+				
+				// sort blog date map by date
+				var sort:Sort = new Sort;
+				sort.fields = [new SortField("date")];
+				_blogDateMap.sort = sort;
+				_blogDateMap.refresh();
+				
+				// generat time slide index
+				var lastDateYear:int = -1;
+				var lastDateMonth:int = -1;
+				var lastIndex:int = -1;
+				for (var i:int = 0; i < _blogDateMap.length; ++i)
+				{
+					if (_blogDateMap[i].date.fullYear != lastDateYear || _blogDateMap[i].date.month != lastDateMonth)
+					{
+						++lastIndex;
+						lastDateYear = _blogDateMap[i].date.fullYear;
+						lastDateMonth = _blogDateMap[i].date.month
+					}
+					_blogDateMap[i].slideIndex = lastIndex;
+				}
+				slider.setSliderProp(0, lastIndex, 1);
+				
+				trace("done");
+			}
+			
+			private function OnArticleEditEnd(e:Event):void
+			{
+				var aw:ArticleView = e.target as ArticleView;
+				if (aw != null)
+				{
+					var id:String = aw.articleId;
+					var title:String = aw.articleTitle;
+					var body:String = aw.articleBody;
+					
+					// TODO: dispath event for update blog article by id
+				}
+			}
+			
+			private function GetWantedArticles(slideIndex:int):ArrayCollection
+			{
+				var a:ArrayCollection = new ArrayCollection;
+				for each (var o:Object in _blogDateMap)
+				{
+					if (o.slideIndex == slideIndex) a.addItem(o.view);
+				}
+				return a;
+			}
+			
+			private function OnSliderDragEnd(e:Event):void
+			{
+				var wantedArticles:ArrayCollection = GetWantedArticles(slider.sliderValue);
+				ShowSelectedArticles(wantedArticles);
+			}
+			
+			private function ShowSelectedArticles(articles:ArrayCollection):void
+			{
+				LetGoCurrentSelectedArticles();
+				
+				for each (var ca:ArticleView in articles)
+				{
+					ca.alpha = 1;
+				}
+				_currentSelectedArticleViews = articles;
+			}
+			
+			private function LetGoCurrentSelectedArticles():void
+			{
+				if (_currentSelectedArticleViews.length != 0)
+				{
+					for each (var ca:ArticleView in _currentSelectedArticleViews)
+					{
+						ca.alpha = 0.5;
+					}
+					_currentSelectedArticleViews.removeAll();
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<!-- Main articles gallery area -->
+	<mx:Canvas id="galleryPanel" x="0" y="0" width="100%" height="100%"/>
+	
+	<!-- Time Tunnel component -->
+	<commonComponent:TimeSlider id="slider" x="0" y="{this.height - SLIDER_PANEL_HEIGHT}"
+		width="100%" height="{SLIDER_PANEL_HEIGHT}"/>
+	
+</mx:Canvas>

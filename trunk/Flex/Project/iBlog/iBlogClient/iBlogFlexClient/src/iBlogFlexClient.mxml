@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:map="com.larryzzl.iBlog.map.*"
+	xmlns:view="com.larryzzl.iBlog.view.*"
 	layout="absolute"
 	width="100%" height="100%"
 	backgroundColor="0x000000"
-	creationComplete="OnAppCreated()" xmlns:view="com.larryzzl.iBlog.view.*">
+	creationComplete="OnAppCreated()">
 	
 	<mx:Script>
 		<![CDATA[
@@ -30,6 +31,7 @@
 	
 	<!-- put mate events map here -->
 	<map:MainEventMap/>
+	<map:ServiceEventMap/>
 	
 	<!-- view components start here -->
 	<mx:Canvas id="mainFrame" x="0" y="0" width="100%" height="100%">

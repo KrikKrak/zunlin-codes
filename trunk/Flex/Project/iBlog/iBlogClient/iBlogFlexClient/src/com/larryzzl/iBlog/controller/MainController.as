@@ -1,6 +1,8 @@
 package com.larryzzl.iBlog.controller
 {
 	import com.larryzzl.iBlog.model.MainModelLocator;
+	import com.larryzzl.iBlog.model.modelDef.UserInfo;
+	import com.larryzzl.iBlog.service.ReadArticleFromMockData;
 	
 	import mx.containers.Canvas;
 	
@@ -39,11 +41,27 @@ package com.larryzzl.iBlog.controller
 		{
 			trace("MainController initializeApp called");
 			
+			// get login user info
+			// TODO: we should get user info from site, here is just a demo
+			var ui:UserInfo = new UserInfo;
+			ui.userName = "Larry";
+			ui.userId = "1";
+			ui.userEmail = "larry@larry.com";
+			ui.isUserAuthor = true;
+			_mainModel.currentUser = ui;
+			
+			readLatestArticles();
 		}
 		
 		public function showLoadingOverlay(show:Boolean):void
 		{
 			_mainModel.showLoadingOverlay = show;
+		}
+		
+		public function readLatestArticles():void
+		{
+			var rd:ReadArticleFromMockData = new ReadArticleFromMockData();
+			rd.readArticle();
 		}
 
 	}

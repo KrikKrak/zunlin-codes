@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalAlign="center" verticalAlign="middle">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.SliderEvent;
+		
+			public static const E_SLIDE_DRAG_END:String = "E_SLIDE_DRAG_END";
+			
+			public function setSliderProp(minValue:Number, maxValue:Number, intervalValue:Number = 1):void
+			{
+				slider.maximum = maxValue;
+				slider.minimum = minValue;
+				slider.snapInterval = intervalValue;
+				
+				slider.value = slider.minimum;
+			}
+			
+			public function get sliderValue():Number
+			{
+				return slider.value;
+			}
+			
+			private function OnThumbRelease(e:SliderEvent):void
+			{
+				dispatchEvent(new Event(E_SLIDE_DRAG_END));
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:HSlider id="slider" width="100%" minWidth="200" maxWidth="700"
+		minimum="0" maximum="100" value="50" snapInterval="1" 
+		thumbRelease="OnThumbRelease(event)"/>
+	
+</mx:VBox>

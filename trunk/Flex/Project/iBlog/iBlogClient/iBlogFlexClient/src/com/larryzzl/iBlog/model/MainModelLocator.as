@@ -1,10 +1,15 @@
 package com.larryzzl.iBlog.model
 {
+	import com.larryzzl.iBlog.model.modelDef.BlogArticle;
+	import com.larryzzl.iBlog.model.modelDef.UserInfo;
+	
 	import mx.containers.Canvas;
 	
 	[Bindable]
 	public class MainModelLocator
 	{
+		public static const MAX_NUMBER_OF_ITEM_READ_ONCE:Number = 5;
+		
 		private static var _inst: MainModelLocator;
 		
 		public static function get inst():MainModelLocator
@@ -25,11 +30,15 @@ package com.larryzzl.iBlog.model
 		
 		public var sessionKey:String = "";
 		
+		public var currentUser:UserInfo;
+		
 		public var mainFrame:Canvas;
 		
 		public var mainContentFrame:Canvas;
 		
 		public var showLoadingOverlay:Boolean = false;
+		
+		public var localBlogArticles:Vector.<BlogArticle> = new Vector.<BlogArticle>();
 
 	}
 }
