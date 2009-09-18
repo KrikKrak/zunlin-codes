@@ -8,7 +8,7 @@ package com.larryzzl.iBlog.model
 	[Bindable]
 	public class MainModelLocator
 	{
-		public static const MAX_NUMBER_OF_ITEM_READ_ONCE:Number = 5;
+		public static const MAX_NUMBER_OF_ITEM_READ_ONCE:Number = 20;
 		
 		private static var _inst: MainModelLocator;
 		
