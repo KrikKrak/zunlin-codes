@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:commonComponent="com.larryzzl.iBlog.view.commonComponent.*"
+	xmlns:articles="com.larryzzl.iBlog.view.articles.*"
+	creationComplete="OnCreated()" >
+
+	<mx:Script>
+		<![CDATA[
+			import com.larryzzl.iBlog.model.MainModelLocator;
+			import mx.binding.utils.ChangeWatcher;
+			
+			[Bindable]
+			private var _mainModel:MainModelLocator = MainModelLocator.inst;
+			
+			private function OnCreated():void
+			{
+			}
+			
+			
+		]]>
+	</mx:Script>
+
+	<articles:ArticlesGalleryView id="galleryView" x="0" y="0"
+		width="100%" height="100%"/>
+
+	<commonComponent:LoadingOverlay id="loadingOverylay" x="0" y="0"
+		width="100%" height="100%"
+		visible="{_mainModel.showLoadingOverlay}"/>
+	
+</mx:Canvas>

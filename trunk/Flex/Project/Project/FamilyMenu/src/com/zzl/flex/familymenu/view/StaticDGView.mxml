@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%"
+	creationComplete="OnPanelCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.familymenu.controller.MainController;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.viewCommand.EditDishCommand;
+			
+			private var _controller:MainController = MainController.inst;
+			
+			[Bindable]
+			private var _dataArray:ArrayCollection = new ArrayCollection;
+			private var _effectDuration:int = 500;
+			
+			public function set dataArray(val:ArrayCollection):void
+			{
+				_dataArray = val;
+				_dataArray.refresh();
+			}
+			
+			public function set effectDuration(val:int):void
+			{
+				_effectDuration = val;
+			}
+			
+			public function get effectDuration():int
+			{
+				return _effectDuration;
+			}
+			
+			private function OnPanelCreationComplete():void
+			{
+			}
+			
+			private function OnDoubleClickEditDish():void
+			{
+				var c:EditDishCommand = new EditDishCommand;
+				c.dishID = (_dataArray[dg.selectedIndex] as DishDetail).id;
+				_controller.handleCommand(EditDishCommand.NAME, c);
+			}
+			
+			private function simpleDateLabel(item:Object, column:DataGridColumn):String
+			{
+				var s:String = ((item as DishDetail)[column.dataField] as Date).toDateString();
+				return s.substring(4, s.length);
+			}
+
+	        
+		]]>
+	</mx:Script>
+	
+	<mx:Style>
+		.dgColHeaderStyle
+		{
+			textAlign:center;
+		}
+	</mx:Style>
+	
+	<mx:DataGrid id="dg" width="100%" height="100%"
+		dataProvider="{_dataArray}" editable="false" draggableColumns="false" doubleClickEnabled="true"
+		doubleClick="OnDoubleClickEditDish()">
+		
+		<mx:columns>
+			<mx:DataGridColumn headerText="菜名" headerStyleName="dgColHeaderStyle"
+				dataField="name"/>
+			<mx:DataGridColumn headerText="创建日期" width="100" headerStyleName="dgColHeaderStyle" textAlign="right"
+				dataField="createDate" labelFunction="simpleDateLabel"/>
+			<mx:DataGridColumn headerText="最近使用日期" width="100" headerStyleName="dgColHeaderStyle" textAlign="right"
+				dataField="recentUsedDate" labelFunction="simpleDateLabel"/>
+			<mx:DataGridColumn headerText="使用次数" width="80" headerStyleName="dgColHeaderStyle" textAlign="right"
+				dataField="usedTimes"/>
+		</mx:columns>
+		
+	</mx:DataGrid>
+	
+</mx:Canvas>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundColor="0x000000" backgroundAlpha="0">
+	
+	<mx:Label id="lb_loading" x="{(this.width - lb_loading.width) * 0.5}" y="{(this.height - lb_loading.height) * 0.5}"
+		text="Loading..."
+		fontSize="30" color="0xFF8000"/>
+	
+</mx:Canvas>

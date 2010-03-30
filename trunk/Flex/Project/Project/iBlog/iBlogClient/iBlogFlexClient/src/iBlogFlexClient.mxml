@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:map="com.larryzzl.iBlog.map.*"
+	xmlns:view="com.larryzzl.iBlog.view.*"
+	layout="absolute"
+	width="100%" height="100%"
+	backgroundColor="0x000000"
+	creationComplete="OnAppCreated()">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.larryzzl.iBlog.event.MainAppEvent;
+			
+			private function OnAppCreated():void
+			{
+				var e0:MainAppEvent = new MainAppEvent(MainAppEvent.REGISTER_APP);
+				e0.mainFrame = mainFrame;
+				e0.mainContentFrame = mainContentFrame;
+				this.dispatchEvent(e0);
+				
+				var e1:MainAppEvent = new MainAppEvent(MainAppEvent.LOAD_FLASH_VAR);
+				e1.flashvarParams = Application.application.parameters;
+				this.dispatchEvent(e1);
+				
+				var e2:MainAppEvent = new MainAppEvent(MainAppEvent.APP_DID_LAUNCH);
+				this.dispatchEvent(e2);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<!-- put mate events map here -->
+	<map:MainEventMap/>
+	<map:ServiceEventMap/>
+	
+	<!-- view components start here -->
+	<mx:Canvas id="mainFrame" x="0" y="0" width="100%" height="100%">
+		<view:MainContentView id="mainContentFrame" x="0" y="0" width="100%" height="100%"/>
+	</mx:Canvas>
+	
+</mx:Application>

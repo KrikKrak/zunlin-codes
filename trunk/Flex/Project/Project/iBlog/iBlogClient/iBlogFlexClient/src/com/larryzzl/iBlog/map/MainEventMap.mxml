@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EventMap xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="http://mate.asfusion.com/">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.larryzzl.iBlog.controller.MainController;
+			import com.larryzzl.iBlog.event.MainAppEvent;
+		]]>
+	</mx:Script>
+	
+	<!--
+	<Debugger level="{Debugger.ALL}" />
+	-->
+	
+	<!-- UI events -->
+	
+	<EventHandlers type="{MainAppEvent.SHOW_LOADING_OVERLAY}" debug="false">
+		<MethodInvoker generator="{MainController}" method="showLoadingOverlay" arguments="{event.showLoadingOverylay}"/>
+	</EventHandlers>
+
+		
+	<!-- App events -->
+
+	<EventHandlers type="{MainAppEvent.LOAD_FLASH_VAR}" debug="false">
+		<MethodInvoker generator="{MainController}" method="loadFlashVar" arguments="{event.flashvarParams}"/>
+	</EventHandlers>
+	
+	<EventHandlers type="{MainAppEvent.REGISTER_APP}" debug="false">
+		<MethodInvoker generator="{MainController}" method="registerApp" arguments="{[event.mainFrame, event.mainContentFrame]}"/>
+	</EventHandlers>
+
+	<EventHandlers type="{MainAppEvent.APP_DID_LAUNCH}" debug="false">
+		<MethodInvoker generator="{MainController}" method="initializeApp"/>
+	</EventHandlers>
+
+			
+</EventMap>

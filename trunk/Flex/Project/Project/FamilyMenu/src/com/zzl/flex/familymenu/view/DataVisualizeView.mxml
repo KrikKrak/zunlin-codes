@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundColor="0x000000" backgroundAlpha="1"
+	cornerRadius="10"
+	borderThickness="1" borderColor="0x000000" borderStyle="solid"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	show="OnShowUp()" hide="OnHide()" resize="OnResize()"
+	creationComplete="OnPanelCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.familymenu.view.visualizeComponent.BallPlayground;
+			import mx.collections.ArrayCollection;
+			import com.zzl.flex.familymenu.view.commonUIComponent.MovingStarBackground;
+			import com.zzl.flex.familymenu.view.commonUIComponent.StarBackground;
+			import flash.display.GradientType;
+			import flash.display.SpreadMethod;
+			import flash.display.InterpolationMethod;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			
+			import com.zzl.flex.algorithm.CommonTools;
+			
+			private var _bgArray:ArrayCollection;
+			private var _maskShape:Shape;
+			private var _ballPlayground:BallPlayground;
+			
+			private function OnPanelCreationComplete():void
+			{
+				DrawBackground();
+				InviteBalls();
+			}
+			
+			private function OnResize():void
+			{
+				UpdateBackground();
+			}
+			
+			private function UpdateBackground():void
+			{
+				if (_bgArray != null && _bgArray.length > 0)
+				{
+					for each (var b:MovingStarBackground in _bgArray)
+					{
+						b.width = this.width;
+						b.height = this.height;
+					}
+				}
+				
+				UpdateMask();
+			}
+			
+			private function DrawBackground():void
+			{
+				UpdateMask();
+				
+				// create 3 layers of background
+				var sbgs:MovingStarBackground = new MovingStarBackground(200, 3);
+				sbgs.width = this.width;
+				sbgs.height = this.height;
+				this.addChild(sbgs);
+				sbgs.speed = 0.1;
+				sbgs.running = true;
+				
+				var sbgm:MovingStarBackground = new MovingStarBackground(50, 5);
+				sbgm.width = this.width;
+				sbgm.height = this.height;
+				this.addChild(sbgm);
+				sbgm.speed = 0.2;
+				sbgm.running = true;
+				
+				var sbgl:MovingStarBackground = new MovingStarBackground(10, 8);
+				sbgl.width = this.width;
+				sbgl.height = this.height;
+				this.addChild(sbgl);
+				sbgl.speed = 0.3;
+				sbgl.running = true;
+				
+				_bgArray = new ArrayCollection;
+				_bgArray.addItem(sbgs);
+				_bgArray.addItem(sbgm);
+				_bgArray.addItem(sbgl);
+				
+				return;
+			}
+			
+			private function UpdateMask():void
+			{
+				// update mask
+				if (_maskShape != null && this.rawChildren.contains(_maskShape))
+				{
+					this.rawChildren.removeChild(_maskShape);
+				}
+				_maskShape = new Shape;
+				_maskShape.graphics.beginFill(0x000000);
+				_maskShape.graphics.drawRect(0, 0, this.width, this.height);
+				_maskShape.graphics.endFill();
+				this.rawChildren.addChild(_maskShape);
+				this.mask = _maskShape;
+			}
+			
+			private function InviteBalls():void
+			{
+				_ballPlayground = new BallPlayground(this.width, this.height, GlobeModelLocator.inst.dishs);
+				this.addChild(_ballPlayground);
+				_ballPlayground.width = this.width;
+				_ballPlayground.height = this.height;
+				_ballPlayground.startPlay();
+			}
+
+			private function DrawPie(s:Sprite, x:int, y:int, size:Number = 100, color:int = 0xFFFFFF):void
+			{
+				var innerSize:Number = 0.8;
+				if (s != null)
+				{
+					var g:Graphics = s.graphics;
+					var bdColor:int = 0xFFFFFF - color;
+					g.beginFill(bdColor);
+					g.drawCircle(x, y, size / 2);
+					g.beginFill(color);
+					g.drawCircle(x, y, innerSize * size / 2);
+					g.endFill();
+				}
+			}
+			
+			private function OnShowUp():void
+			{
+
+			}
+			
+			private function OnHide():void
+			{
+
+			}
+			
+			override public function toString():String
+			{
+				return "DataVisualizeView";
+			}
+
+		]]>
+	</mx:Script>
+
+</mx:Canvas>

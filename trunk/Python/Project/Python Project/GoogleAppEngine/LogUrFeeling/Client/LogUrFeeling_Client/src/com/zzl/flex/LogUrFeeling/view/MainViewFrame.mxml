@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.LogUrFeeling.controller.MainController;
+			import com.zzl.flex.LogUrFeeling.Model.MainModelLocator;
+			import mx.modules.ModuleLoader;
+			import com.zzl.flex.LogUrFeeling.controller.ModuleLoaderManager;
+			import caurina.transitions.Tweener;
+			
+			private var _moduleManager:ModuleLoaderManager = ModuleLoaderManager.inst;
+			private var _mainModelLocator:MainModelLocator = MainModelLocator.inst;
+			private var _mainController:MainController = MainController.inst;
+			
+			[Bindable]
+			private var _curDate:String;
+			[Bindable]
+			private var _isLogEnable:Boolean = true;
+			[Bindable]
+			private var _isStaticsEnable:Boolean = true;
+			[Bindable]
+			private var _isHistoryEnable:Boolean = true;
+			[Bindable]
+			private var _isAboutEnable:Boolean = true;
+			
+			private var _curLoadModule:String;
+			private var _pageModule:Dictionary;
+			private var _availablePageDepth:int = 10000;
+			
+			private const TOP_PANEL_HEIGHT:int = 50;
+			private const BOTTOM_PANEL_HEIGHT:int = 100;
+			private const PAGE_BUTTON_SIZE:int = 30;
+			
+			public function applicationLoaded():void
+			{
+				PrepareApp();
+				
+				LoadModule(_mainModelLocator.logFeelingModuleUrl);
+			}
+			
+			private function PrepareApp():void
+			{
+				UpdatePrespectiveCenter();
+				
+				var d:Date = new Date;
+				_curDate = d.toDateString();
+				
+				_pageModule = new Dictionary;
+				
+				_isLogEnable = _mainModelLocator.isLogEnable;
+				_isStaticsEnable = _mainModelLocator.isStaticsEnable;
+				_isHistoryEnable = _mainModelLocator.isHistoryEnable;
+				_isAboutEnable = _mainModelLocator.isAboutEnable;
+				
+				_mainModelLocator.addEventListener(MainModelLocator.E_MODULE_LOAD_READY_UPDATE, OnModuleReady, false, 0, true);
+				_mainModelLocator.addEventListener(MainModelLocator.E_FEELING_LOGGED_UPDATE, OnFeelingLogged, false, 0, true);
+			}
+			
+			private function UpdatePrespectiveCenter():void
+			{
+				var p:PerspectiveProjection = this.transform.perspectiveProjection;
+				if (p == null) p = new PerspectiveProjection;
+				p.projectionCenter = new Point(this.width * 0.5, this.height * 0.5);
+				this.transform.perspectiveProjection = p;
+			}
+			
+			private function LoadModule(url:String):void
+			{
+				if (_moduleManager.loadModule(url) == true)
+				{
+					// this module hasn't been loaded
+					_curLoadModule = url;
+					var m:ModuleLoader = _moduleManager.getModuleLoader(url);
+					m.loadModule();
+					
+				}
+				else
+				{
+					// it has already been loaded, go to the relating page directly
+					Go2Page((_pageModule[url] as ModuleLoader).z, _mainModelLocator.useAnimPageSwitch);
+				}
+			}
+			
+			private function OnModuleReady(e:Event):void
+			{
+				var m:ModuleLoader = _moduleManager.getModuleLoader(_curLoadModule);
+				mainContent.addChild(m);
+				m.percentWidth = 100;
+				m.percentHeight = 100;
+				m.z = _availablePageDepth;
+				_pageModule[_curLoadModule] = m;
+
+				Go2Page(_availablePageDepth, _mainModelLocator.useAnimPageSwitch);
+				
+				_availablePageDepth -= 1000;
+				_curLoadModule = "";
+			}
+			
+			private function Go2Page(toDepth:int, useAnim:Boolean = true):void
+			{
+				toDepth -= 100;
+				if (mainContent.z == toDepth) return;
+				if (useAnim == false)
+				{
+					mainContent.z -= toDepth;
+				}
+				else
+				{
+					Tweener.addTween(mainContent, {z: -toDepth, time: 1});
+				}
+			}
+			
+			private function OnFeelingLogged(e:Event):void
+			{
+				_mainModelLocator.isLogEnable = false;
+				_isLogEnable = false;
+				LoadModule(_mainModelLocator.aboutModuleUrl);
+			}
+			
+			private function OnLogFeelingClick():void
+			{
+				LoadModule(_mainModelLocator.logFeelingModuleUrl);
+			}
+			
+			private function OnAboutClick():void
+			{
+				LoadModule(_mainModelLocator.aboutModuleUrl);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="topPanel" x="0" y="0" width="100%" height="{TOP_PANEL_HEIGHT}">
+		<mx:Label id="curDateLabel" x="10" y="10" text="Today is: {_curDate}"
+			fontSize="12" color="#FFFFFF" fontFamily="Verdana"/>
+	</mx:Canvas>
+	
+	<mx:Canvas id="mainContent" x="0" y="{topPanel.x + topPanel.height}" z="100"
+		width="100%" height="{bottonPanel.y - mainContent.y}"
+		verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		
+	</mx:Canvas>
+	
+	<mx:Canvas id="bottonPanel" x="0" y="{this.height - BOTTOM_PANEL_HEIGHT}"
+		width="100%" height="{BOTTOM_PANEL_HEIGHT}">
+		
+		<mx:HBox id="pageButtonPanel" x="0" y="10" width="100%"
+			horizontalAlign="center" verticalAlign="middle" horizontalGap="20">
+			
+			<mx:Button id="btnLogUrFeeling" width="{PAGE_BUTTON_SIZE}" height="{PAGE_BUTTON_SIZE}" label="Log"
+				visible="{_isLogEnable}" includeInLayout="{_isLogEnable}"
+				click="OnLogFeelingClick()"/>
+			<mx:Button id="btnStatics" width="{PAGE_BUTTON_SIZE}" height="{PAGE_BUTTON_SIZE}" label="Sta"
+				visible="{_isStaticsEnable}" includeInLayout="{_isStaticsEnable}"/>
+			<mx:Button id="btnHistroy" width="{PAGE_BUTTON_SIZE}" height="{PAGE_BUTTON_SIZE}" label="His"
+				visible="{_isHistoryEnable}" includeInLayout="{_isHistoryEnable}"/>
+			<mx:Button id="btnAbout" width="{PAGE_BUTTON_SIZE}" height="{PAGE_BUTTON_SIZE}" label="?"
+				visible="{_isAboutEnable}" includeInLayout="{_isAboutEnable}"
+				click="OnAboutClick()"/>
+			
+		</mx:HBox>
+		
+		<mx:HBox id="logoPanel" x="0" y="{pageButtonPanel.y + pageButtonPanel.height + 20}" width="100%"
+			horizontalAlign="center" verticalAlign="middle" horizontalGap="40">
+			
+			<mx:Image source="@Embed(source='../assets/logo_LogUrFeeling.png')"/>
+			<mx:Image source="@Embed(source='../assets/appengine-silver-120x30.gif')"/>
+			
+		</mx:HBox>
+		
+	</mx:Canvas>
+	
+</mx:Canvas>

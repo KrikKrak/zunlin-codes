@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	currentState="LogState"
+	mouseDown="OnMouseDown(event)"
+	mouseMove="OnMouseMove(event)"
+	mouseUp="OnMouseUp(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.iLog4Flex.model.LogFilterSetting;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.Application;
+			
+			import com.zzl.iLog4Flex.controller.LogManager;
+			import com.zzl.iLog4Flex.model.LogSetting;
+			import com.zzl.iLog4Flex.model.LogStruct;
+			import com.zzl.iLog4Flex.model.LogLevel;
+			
+			private static var inst:LogWnd;
+			private var isShowing:Boolean = false;
+			
+			[Bindable]
+			private var isUpdating:Boolean = true;
+			
+			[Bindable]
+			private var _setting:LogSetting = LogSetting.inst;
+			
+			[Bindable]
+			private var _logManager:LogManager = LogManager.inst;
+			
+			private var _isHitTitle:Boolean = false;
+			private var _hitOffset:Object = {x: 0, y: 0};
+			
+			public static function show():void
+			{
+				if (inst == null)
+				{
+					inst = new LogWnd;
+					Application.application.addChild(inst);
+				}
+				else if (inst.isShowing == false)
+				{
+					Application.application.addChild(inst);
+				}
+				inst.isShowing = true;
+				inst.LoadLog();
+			}
+			
+			private function LoadLog():void
+			{
+				_logManager.addEventListener(LogManager.EVENT_LOG_UPDATE, UpdateLog, false, 0, true);
+				isUpdating = true;
+				UpdateLog(null);
+			}
+			
+			private function UpdateLog(e:Event):void
+			{
+				if (isUpdating == true)
+				{
+					var logs:ArrayCollection = _logManager.getLogInfo(new LogFilterSetting(_setting.showDebug,
+																													_setting.showError,
+																													_setting.showClass));
+					var logString:String = "";
+					
+					var preString:String = "";
+					var preClass:String = "";
+					var preFunction:String = "";
+					for each (var l:LogStruct in logs)
+					{
+						switch (l.logLevel)
+						{
+							case LogLevel.LOG_LEVEL_BUTTOM:
+								preString = "";
+								break;
+								
+							case LogLevel.LOG_LEVEL_DEBUG:
+								preString = "DEBUG";
+								break;
+								
+							case LogLevel.LOG_LEVEL_ERROR:
+								preString = "ERROR";
+								break;
+								
+							case LogLevel.LOG_LEVEL_FINE:
+								preString = "[FINE]";
+								break;
+								
+							case LogLevel.LOG_LEVEL_TOP:
+								preString = "\t";
+								break;
+						}
+						
+						var cn:String = "";
+						if (preClass != l.className)
+						{
+							preClass = l.className;
+							cn = l.className + ", ";
+						}
+						
+						var fn:String = "";
+						if (preFunction != l.functionName)
+						{
+							preFunction = l.functionName;
+							fn = l.functionName + ", ";
+						}
+						
+						var t:String = "";
+						if (l.logLevel != LogLevel.LOG_LEVEL_TOP)
+						{
+							t = preString + "\t\t" + cn  + fn + l.text;
+						}
+						else
+						{
+							t = "-------- " + l.className + " --------";
+						}
+						
+						logString += t;
+						logString += "<br>";
+					}
+
+					log_text.htmlText = logString;
+					log_text.validateNow();
+					
+					if (log_text.textHeight > log_text.height)
+					{
+						log_text.verticalScrollPosition = log_text.textHeight;
+					}
+				}
+			}
+			
+			private function OnCopyAll():void
+			{
+				System.setClipboard(log_text.text);
+			}
+			
+			private function OnStop():void
+			{
+				if (isUpdating == true)
+				{
+					isUpdating = false;
+				}
+			}
+			
+			private function OnResume():void
+			{
+				if (isUpdating == false)
+				{
+					isUpdating = true;
+				}
+			}
+			
+			private function OnExit():void
+			{
+				_logManager.removeEventListener(LogManager.EVENT_LOG_UPDATE, UpdateLog);
+				isUpdating = false;
+				Application.application.removeChild(this);
+				isShowing = false;
+			}
+			
+			private function OnOption():void
+			{
+				if (currentState != "OptionState")
+				{
+					currentState = "OptionState";
+				}
+				else
+				{
+					currentState = "LogState";
+				}
+			}
+			
+			private function OnMouseDown(e:MouseEvent):void
+			{
+				if (this.mouseX > mainFrame.x + title_panel.x
+							&& this.mouseX < mainFrame.x + title_panel.x + title_panel.width
+							&& this.mouseY > mainFrame.y + title_panel.y
+							&& this.mouseY < mainFrame.y + title_panel.y + title_panel.height)
+				{
+					_isHitTitle = true;
+					_hitOffset.x = this.mouseX - mainFrame.x;
+					_hitOffset.y = this.mouseY - mainFrame.y;
+				}
+			}
+			
+			private function OnMouseMove(e:MouseEvent):void
+			{
+				if (_isHitTitle == true)
+				{
+					mainFrame.x = this.mouseX - _hitOffset.x;
+					mainFrame.y = this.mouseY - _hitOffset.y;
+				}
+			}
+			
+			private function OnMouseUp(e:MouseEvent):void
+			{
+				_isHitTitle = false;
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:states>
+		<mx:State name="OptionState">
+			<mx:SetStyle target="{log_text}" name="height" value="{log_panel.height - show_opt_panel.height}"/>
+		</mx:State>
+		
+		<mx:State name="LogState">
+			<mx:SetStyle target="{log_text}" name="height" value="100%"/>
+		</mx:State>
+	</mx:states>
+	
+	<mx:transitions>
+		<mx:Transition fromState="*" toState="*">
+			<mx:Parallel>
+				<mx:Move target="{show_opt_panel}" duration="100"/>
+				<mx:Resize target="{log_text}" duration="100"/>
+			</mx:Parallel>
+		</mx:Transition>
+	</mx:transitions>
+	
+	<mx:Canvas id="mainFrame" x="{(this.width - mainFrame.width) / 2}"
+		y="{(this.height - mainFrame.height) / 2}"
+		width="500" height="400"
+		borderStyle="solid" borderColor="#000000" backgroundColor="#D5D5D5"
+		verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		
+		<mx:HBox id="title_panel" x="0" y="0" width="100%" height="25" horizontalAlign="center" verticalAlign="middle">
+			<mx:Label text="iLog4Flex Alpha 1.0" fontWeight="bold"/>
+		</mx:HBox>
+			
+		<mx:VBox id="log_panel" x="{title_panel.x + 5}" y="{title_panel.y + title_panel.height}"
+			width="{mainFrame.width - 2 * log_panel.x}"
+			height="{mainFrame.height - title_panel.height - button_panel.height - s1.height}">
+			
+			<mx:TextArea id="log_text" width="100%" height="100%" editable="false"/>
+			
+			<mx:HBox id="show_opt_panel" width="100%" height="25"
+				horizontalAlign="center" verticalAlign="middle"
+				visible="{currentState == 'OptionState'}" includeInLayout="{currentState == 'OptionState'}">
+				
+				<mx:Label text="Is Debug: {_setting.useDebugMode}"/>
+				<mx:Spacer width="5"/>
+				<mx:CheckBox id="show_debug" label="Show Debug" selected="{_setting.showDebug}"
+					click="{_setting.showDebug = show_debug.selected}"/>
+				<mx:Spacer width="5"/>
+				<mx:CheckBox id="show_error" label="Show Error" selected="{_setting.showError}"
+					click="{_setting.showError = show_error.selected}"/>
+				<mx:Spacer width="5"/>
+				<mx:ComboBox id="show_className" dataProvider="{_logManager.classNames}" width="150"
+					change="{_setting.showClass = show_className.value.toString()}"/>
+				
+			</mx:HBox>
+			
+		</mx:VBox>
+			
+		<mx:Spacer id="s1" height="5"/>		
+		
+		<mx:HBox id="button_panel" x="{log_text.x}" y="{mainFrame.height - button_panel.height}"
+			width="{mainFrame.width}" height="30" horizontalAlign="center" verticalAlign="top">
+			
+			<mx:Button	label="Logger Option" click="OnOption()"/>
+			<mx:Spacer width="5"/>
+			<mx:Button label="Copy all" click="OnCopyAll()"/>
+			<mx:Spacer width="5"/>
+			<mx:Button label="Stop update" click="OnStop()"
+				visible="{isUpdating}" includeInLayout="{isUpdating}"/>
+			<mx:Button label="Resume update" click="OnResume()"
+				visible="{!isUpdating}" includeInLayout="{!isUpdating}"/>
+			<mx:Spacer width="5"/>
+			<mx:Button label="Exit" click="OnExit()"/>
+		</mx:HBox>
+		
+	</mx:Canvas>
+	
+</mx:Canvas>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:commonComponent="com.larryzzl.iBlog.view.commonComponent.*"
+	xmlns:articles="com.larryzzl.iBlog.view.articles.*"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	width="100%" height="100%"
+	creationComplete="OnCreated()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import com.larryzzl.iBlog.event.ArticleEvent;
+			import caurina.transitions.Tweener;
+			import mx.collections.SortField;
+			import mx.collections.Sort;
+			import mx.collections.ArrayCollection;
+			import com.larryzzl.iBlog.model.modelDef.BlogArticle;
+			import com.larryzzl.iBlog.model.MainModelLocator;
+			import mx.binding.utils.ChangeWatcher;
+			
+			private const SLIDER_PANEL_HEIGHT:int = 50;
+			private const ARTICLE_PANEL_WIDTH:int = 300;
+			private const ARTICLE_PANEL_HEIGHT:int = 300;
+			
+			private var _model:MainModelLocator = MainModelLocator.inst;
+			private var _localArticlesWatcher:ChangeWatcher;
+			private var _blogDateMap:ArrayCollection;
+			private var _currentSelectedArticleViews:ArrayCollection;
+			private var _panelNumber:int = 0;
+			
+			private function OnCreated():void
+			{
+				_blogDateMap = new ArrayCollection;
+				_currentSelectedArticleViews = new ArrayCollection;
+				_localArticlesWatcher = ChangeWatcher.watch(_model, "localBlogArticles", OnLoaclArticlesChange);
+				
+				slider.addEventListener(TimeSlider.E_SLIDE_DRAG_END, OnSliderDragEnd, false, 0, true);
+			}
+			
+			private function OnLoaclArticlesChange(e:Event):void
+			{
+				if (galleryPanel != null) galleryPanel.removeAllChildren();
+				_panelNumber = _model.localBlogArticles.length;
+				for each (var ba:BlogArticle in _model.localBlogArticles)
+				{
+					var articleView:ArticleView = new ArticleView;
+					articleView.articleTitle = ba.articleTitle;
+					articleView.articleBody = ba.articleBody;
+					articleView.articleId = ba.articleId;
+					articleView.x = Math.random() * (this.width - ARTICLE_PANEL_WIDTH) - this.width;
+					articleView.y = Math.random() * (this.height - ARTICLE_PANEL_HEIGHT);
+					//articleView.rotationZ = Math.random() * 360 - 180;
+					articleView.width = ARTICLE_PANEL_WIDTH;
+					articleView.height = ARTICLE_PANEL_HEIGHT;
+					//articleView.scaleX = 0.5;
+					//articleView.scaleY = 0.5;
+					//articleView.alpha = 0.5;
+					articleView.canBeEdit = false;
+					articleView.addEventListener(ArticleView.E_ARTICLE_EDIT_END, OnArticleEditEnd, false, 0, true);
+					articleView.addEventListener(FlexEvent.CREATION_COMPLETE, OnPanelCreated, false, 0, true);
+					galleryPanel.addChild(articleView);
+					_blogDateMap.addItem({date: ba.articleCreatedDate, view: articleView, slideIndex: 0});
+				}
+				
+				// sort blog date map by date
+				var sort:Sort = new Sort;
+				sort.fields = [new SortField("date")];
+				_blogDateMap.sort = sort;
+				_blogDateMap.refresh();
+				
+				// generat time slide index
+				var lastDateYear:int = -1;
+				var lastDateMonth:int = -1;
+				var lastIndex:int = -1;
+				for (var i:int = 0; i < _blogDateMap.length; ++i)
+				{
+					if (_blogDateMap[i].date.fullYear != lastDateYear || _blogDateMap[i].date.month != lastDateMonth)
+					{
+						++lastIndex;
+						lastDateYear = _blogDateMap[i].date.fullYear;
+						lastDateMonth = _blogDateMap[i].date.month
+					}
+					_blogDateMap[i].slideIndex = lastIndex;
+				}
+				slider.setSliderProp(_blogDateMap, 0, lastIndex, 1);
+			}
+			
+			private function OnPanelCreated(e:FlexEvent):void
+			{
+				--_panelNumber;
+				Tweener.addTween(e.target, {x: Math.random() * (this.width - ARTICLE_PANEL_WIDTH),
+									y: Math.random() * (this.height - ARTICLE_PANEL_HEIGHT),
+									rotationZ: Math.random() * 360 - 180,
+									scaleX: 0.5,
+									scaleY: 0.5,
+									alpha: 0.5,
+									time: 1,
+									delay: (_blogDateMap.length - _panelNumber) * 0.05});
+			}
+			
+			private function OnArticleEditEnd(e:Event):void
+			{
+				var aw:ArticleView = e.target as ArticleView;
+				if (aw != null)
+				{
+					var e1:ArticleEvent = new ArticleEvent(ArticleEvent.UPDATE_ARTICLE_CONTENT);
+					e1.articleId = aw.articleId;
+					e1.articleTitle = aw.articleTitle;
+					e1.articleBody = aw.articleBody;
+					dispatchEvent(e1);
+				}
+			}
+			
+			private function GetWantedArticles(slideIndex:int):ArrayCollection
+			{
+				var a:ArrayCollection = new ArrayCollection;
+				for each (var o:Object in _blogDateMap)
+				{
+					if (o.slideIndex == slideIndex) a.addItem(o.view);
+				}
+				return a;
+			}
+			
+			private function OnSliderDragEnd(e:Event):void
+			{
+				var wantedArticles:ArrayCollection = GetWantedArticles(slider.sliderValue);
+				ShowSelectedArticles(wantedArticles);
+			}
+			
+			private function ShowSelectedArticles(articles:ArrayCollection):void
+			{
+				LetGoCurrentSelectedArticles();
+				
+				articleList.visible = false;
+				articleList.addEventListener(ArticleListView.E_ALL_PANELS_ARE_CREATED, OnAllPanelAddedInList, false, 0, true);
+				var points:ArrayCollection = articleList.addArticlePanels(articles, ARTICLE_PANEL_WIDTH, ARTICLE_PANEL_HEIGHT);
+				
+				for (var i:int = 0; i < articles.length; ++i)
+				{
+					var ca:ArticleView = articles[i] as ArticleView;
+					Tweener.addTween(ca, {x: globalToContent(points[i]).x, y: globalToContent(points[i]).y,
+											scaleX: 1, scaleY: 1,
+											rotationZ: 0,
+											alpha: 1,
+											time: 1});
+				}
+
+				_currentSelectedArticleViews = articles;
+			}
+			
+			private function OnAllPanelAddedInList(e:Event):void
+			{
+				articleList.visible = true;
+				articleList.removeEventListener(ArticleListView.E_ALL_PANELS_ARE_CREATED, OnAllPanelAddedInList);
+				for each (var ca:ArticleView in _currentSelectedArticleViews)
+				{
+					ca.visible = false;
+				}
+			}
+			
+			private function LetGoCurrentSelectedArticles():void
+			{
+				if (_currentSelectedArticleViews.length != 0)
+				{
+					articleList.visible = false;
+					var oriPoints:ArrayCollection = articleList.getCurrentArticlePlanesPosition();
+					for (var i:int = 0; i < _currentSelectedArticleViews.length; ++i)
+					{
+						var ca:ArticleView = _currentSelectedArticleViews[i] as ArticleView;
+						ca.x = globalToContent(oriPoints[i]).x;
+						ca.y = globalToContent(oriPoints[i]).y;
+						ca.visible = true;
+						Tweener.addTween(ca, {x: Math.random() * (this.width - ARTICLE_PANEL_WIDTH),
+												y: Math.random() * (this.height - ARTICLE_PANEL_HEIGHT),
+												scaleX: 0.5, scaleY: 0.5,
+												rotationZ: Math.random() * 360 - 180,
+												alpha: 0.5,
+												time: 1});
+					}
+					_currentSelectedArticleViews.removeAll();
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<!-- Main articles gallery area -->
+	<mx:Canvas id="galleryPanel" x="0" y="0" width="100%" height="100%"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+	
+	<!-- Article List component -->
+	<articles:ArticleListView id="articleList" x="0" y="0"
+		verticalScrollPolicy="auto" authorMode="true"
+		width="100%" height="100%" visible="false"/>
+	
+	<!-- Time Tunnel component -->
+	<commonComponent:TimeSlider id="slider" x="0" y="{this.height - SLIDER_PANEL_HEIGHT}"
+		width="100%" height="{SLIDER_PANEL_HEIGHT}"/>
+	
+</mx:Canvas>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	creationComplete="OnCreateComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import com.zzl.flex.uitool.UITools;
+			import com.zzl.flex.algorithm.GUIDGenerator;
+			
+			private function OnCreateComplete():void
+			{
+				TestCreateSpotlight();
+				TestCreateGUID();
+			}
+			
+			private function TestCreateSpotlight():void
+			{
+				UITools.spotlight.depth = 200;
+				var bp:Bitmap = UITools.createSpotlightBitmap(this.width, this.height);
+				this.rawChildren.addChild(bp);
+			}
+			
+			private function TestCreateGUID():void
+			{
+				trace(GUIDGenerator.getGUID());
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Application>

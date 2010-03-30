@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditFunctionButton xmlns="com.Roxio.PhotoStar.UI.Left.EditComponent.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IStyleChangeObject">
+	
+	<mx:Script>
+		<![CDATA[
+		
+			public function updateStyle():void
+			{
+				this.setStyle("upSkin", resourceManager.getClass("AppPic", "TransformButtomUp"));
+				this.setStyle("downSkin", resourceManager.getClass("AppPic", "TransformButtomDown"));
+				this.setStyle("overSkin", resourceManager.getClass("AppPic", "TransformButtomOver"));
+			}
+		]]>
+	</mx:Script>
+	
+</EditFunctionButton>

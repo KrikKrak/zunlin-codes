@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%"
+	creationComplete="OnPanelCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var _dataArray:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			private var _effectDuration:int = 500
+			
+			public function set dataArray(val:ArrayCollection):void
+			{
+				_dataArray = val;
+				_dataArray.refresh();
+			}
+			
+			public function set effectDuration(val:int):void
+			{
+				_effectDuration = val;
+			}
+			
+			public function get effectDuration():int
+			{
+				return _effectDuration;
+			}
+			
+			private function OnPanelCreationComplete():void
+			{
+				/*
+				_dataArray.addItem({name: "test1", value: 5});
+				_dataArray.addItem({name: "test2", value: 2});
+				_dataArray.addItem({name: "test3", value: 1});
+				_dataArray.addItem({name: "test4", value: 1});
+				*/
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:SeriesInterpolate id="interpolateIn" duration="{_effectDuration}"/>
+	<mx:BarChart id="barchart" width="100%" height="100%"
+		dataProvider="{_dataArray}" showDataTips="false">
+		
+		<mx:verticalAxis>
+			<mx:CategoryAxis categoryField="name"/>
+		</mx:verticalAxis>
+            
+		<mx:series>
+			<mx:BarSeries yField="name" xField="value" displayName="name"
+				showDataEffect="{interpolateIn}" labelPosition="inside" labelAlign="right"/>
+		</mx:series>
+	</mx:BarChart>
+	
+</mx:Canvas>

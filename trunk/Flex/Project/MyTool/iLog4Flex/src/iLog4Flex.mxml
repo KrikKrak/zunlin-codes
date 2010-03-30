@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	xmlns:view="com.zzl.iLog4Flex.view.*" creationComplete="Init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.iLog4Flex.controller.Logger;
+			import com.zzl.iLog4Flex.controller.LogManager;
+			
+			private var a:Logger;
+			private function test():void
+			{
+				LogManager.inst.showTrace = false;
+				a = LogManager.inst.getLogger("class");
+				a.error("e", "e");
+				a.fine("f", "f");
+				a.debug("d", "d");
+				a.self();
+				
+				var t:Timer = new Timer(1000);
+				t.addEventListener(TimerEvent.TIMER, OnTimer);
+				t.start();
+			}
+			
+			private function OnTimer(e:TimerEvent):void
+			{
+				a.error("f", "e");
+				a.fine("f", "f");
+				a.debug("d", "d");
+				a.self();
+			}
+			
+			private function Init():void
+			{
+				test();
+				LogManager.inst.showLog();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button label="Add log" click="test()"/>
+	
+	
+</mx:Application>

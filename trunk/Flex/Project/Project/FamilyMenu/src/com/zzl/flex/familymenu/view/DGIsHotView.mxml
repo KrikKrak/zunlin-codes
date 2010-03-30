@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	horizontalGap="4" horizontalAlign="center"
+	>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			
+			[Embed(source="../assets/hot.png")]
+			private const hot:Class;
+			[Embed(source="../assets/noHot.png")]
+			private const noHot:Class;
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				
+				this.removeAllChildren();
+				var img:Image = new Image;
+				
+				if ((value as DishDetail).isHot == true)
+				{
+					img.source = hot;
+				}
+				else
+				{
+					img.source = noHot;
+				}
+				img.scaleX = 0.8;
+				img.scaleY = 0.9;
+				this.addChild(img);
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+</mx:HBox>

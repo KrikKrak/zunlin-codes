@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:Left="com.Roxio.PhotoStar.UI.Left.*"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	backgroundImage="@Resource(key='LeftPanelBackground', bundle='AppPic')" backgroundSize="100%"
+	creationComplete="LeftPanelLoad()" resize="ResizePanel(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ResizeEvent;
+			import com.Roxio.PhotoStar.Mode.IAnimDisplayObject;
+			import com.Roxio.PhotoStar.UI.LoadAnimController;
+			import mx.events.EffectEvent;
+			import mx.effects.Move;
+			
+			import com.Roxio.OnlineObject.BreathGlowBorder;
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+		
+			private const GLOW_BORDER_COLOR:uint = 0x0176a1;
+			private const LOGO_PANEL_WIDTH:int = 318;
+			private const LOGO_PANEL_HEIGHT:int = 65; // actually it's 95
+			private const SUB_PANEL_WIDTH:int = 314;
+			
+			private var _callBackFn:Function;
+			
+			private var import_panel:ImportPanel;
+			private var edit_panel:EditPanel;
+			private var _currentPanel:SubFunctionPanel;
+			
+			private var _panelLoaded:Boolean = false;
+		
+			public function startLoad(loadEndCallBackFn:Function):Boolean
+			{
+				_callBackFn = loadEndCallBackFn;
+				
+				this.visible = true;
+				
+				var move:Move = new Move;
+				move.addEventListener(EffectEvent.EFFECT_END, OnMoveEnd, false, 0, true);
+				move.target = this;
+				move.xFrom = - this.width;
+				move.duration = 500;
+				move.play();
+				
+				return true;
+			}
+			
+			public function startHide(hideEndCallBackFn:Function):Boolean
+			{
+				return true;
+			}
+			
+			public function showEditPanel():void
+			{
+				if (_currentPanel != edit_panel)
+				{
+					_currentPanel.ready2Close();
+					InitEditPanel();
+					var animController:LoadAnimController = new LoadAnimController();
+					animController.changeObject(_currentPanel, edit_panel, OnEditPanelShow);
+				}
+			}
+			
+			private function OnEditPanelShow():void
+			{
+				_currentPanel = edit_panel;
+			}
+			
+			public function showImportPanel():void
+			{
+				if (_currentPanel != import_panel)
+				{
+					_currentPanel.ready2Close();
+					InitImportPanel();
+					var animController:LoadAnimController = new LoadAnimController();
+					animController.changeObject(_currentPanel, import_panel, OnImportPanelShow);
+				}
+			}
+			
+			private function OnImportPanelShow():void
+			{
+				_currentPanel = import_panel;
+			}
+			
+			private function OnMoveEnd(event:EffectEvent):void
+			{
+				if (GlobeSetting.appMode == GlobeSetting.MODE_NEW)
+				{
+					InitImportPanel();
+					_currentPanel = import_panel;
+				}
+				else
+				{
+					InitEditPanel();
+					_currentPanel = edit_panel;
+				}
+				
+				LoadCurrentPanel();
+			}
+			
+			private function LoadCurrentPanel():void
+			{
+				var animController:LoadAnimController = new LoadAnimController(CurrentPanelLoaded);
+				animController.addDisplayObject(_currentPanel);
+				animController.loadObjects();
+			}
+			
+			private function CurrentPanelLoaded():void
+			{
+				_callBackFn();
+				_panelLoaded = true;
+			}
+			
+			private function InitImportPanel():void
+			{
+				if (import_panel == null)
+				{
+					import_panel = new ImportPanel;
+					this.addChild(import_panel);
+					import_panel.visible = false;
+					
+					// set import panel init pos
+					import_panel.x = (this.width - SUB_PANEL_WIDTH) / 2;
+					import_panel.y = logo_panel.y + logo_panel.height;
+					import_panel.width = SUB_PANEL_WIDTH;
+					import_panel.height = this.height - import_panel.y;
+				}
+			}
+			
+			private function InitEditPanel():void
+			{
+				if (edit_panel == null)
+				{
+					edit_panel = new EditPanel;
+					this.addChild(edit_panel);
+					edit_panel.visible = false;
+					
+					// set import panel init pos
+					edit_panel.x = (this.width - SUB_PANEL_WIDTH) / 2;
+					edit_panel.y = logo_panel.y + logo_panel.height;
+					edit_panel.width = SUB_PANEL_WIDTH;
+					edit_panel.height = this.height - edit_panel.y;
+				}
+			}
+			
+			private function LeftPanelLoad():void
+			{
+				var glowFilter:GlowFilter = new GlowFilter;
+				glowFilter.color = GLOW_BORDER_COLOR;
+				glowFilter.alpha = 1;
+				glowFilter.blurX = 20;
+				glowFilter.blurY = 20;
+				glowFilter.strength = 2;
+				glowFilter.quality = 1;
+				
+				this.filters = [glowFilter];
+				BreathGlowBorder.SetNewObject(this, glowFilter);
+			}
+			
+			private function ResizePanel(event:ResizeEvent):void
+			{
+				if (_panelLoaded == true)
+				{
+					if (import_panel != null)
+					{
+						import_panel.height = this.height - import_panel.y;
+					}
+					if (edit_panel != null)
+					{
+						edit_panel.height = this.height - edit_panel.y;
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<Left:LogoPanel id="logo_panel" x="{(this.width - LOGO_PANEL_WIDTH) / 2}" y="0"
+		width="{LOGO_PANEL_WIDTH}" height="{LOGO_PANEL_HEIGHT}"/>
+		
+</mx:Canvas>

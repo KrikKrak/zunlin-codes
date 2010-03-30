@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" creationComplete="OnInit()">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import jp.maaash.ObjectDetection.ObjectDetectorOptions;
+			import jp.maaash.ObjectDetection.ObjectDetector;
+			import jp.maaash.ObjectDetection.ObjectDetectorEvent;
+			import com.quasimondo.bitmapdata.CameraBitmap;
+		
+			private var _camera:CameraBitmap;
+			private var _captureBitmap:Bitmap;
+			
+			private var _detector:ObjectDetector;
+			private var _rectArea:UIComponent;
+			
+			private function OnInit():void
+			{
+				_camera = new CameraBitmap(640, 480, 15);
+				this.rawChildren.addChild(new Bitmap(_camera.bitmapData));
+				
+				_detector = new ObjectDetector;
+				_detector.options = new ObjectDetectorOptions;
+				_detector.addEventListener(ObjectDetectorEvent.DETECTION_COMPLETE, OnDetectorEnd, false, 0, true);
+				
+				_rectArea = new UIComponent;
+				_rectArea.x = 700;
+				_rectArea.y = 400;
+				_rectArea.width = 640 / 4;
+				_rectArea.height = 480 / 4;
+				this.addChild(_rectArea);
+			}
+			
+			private function OnCapture():void
+			{
+				if (_captureBitmap != null)
+				{
+					if (this.rawChildren.contains(_captureBitmap))
+					{
+						this.rawChildren.removeChild(_captureBitmap);
+					}
+					_captureBitmap = null;
+				}
+				
+				var bd:BitmapData = new BitmapData(640 / 4, 480 / 4, false);
+				var drawMatrix:Matrix = new Matrix( 1/ 4, 0, 0, 1 / 4 );
+				bd.draw(_camera.bitmapData, drawMatrix);
+				_captureBitmap = new Bitmap(bd);
+				this.rawChildren.addChild(_captureBitmap);
+				_captureBitmap.x = 700;
+			}
+			
+			private function OnDetector():void
+			{
+				OnCapture();
+				if (_captureBitmap != null)
+				{
+					_detector.detect(_captureBitmap.bitmapData);
+				}
+			}
+			
+			private function OnDetectorEnd(e:ObjectDetectorEvent):void
+			{
+				trace("=======================");
+				var rects:Array = e.rects;
+				for each(var r:Rectangle in rects)
+				{
+					trace(r);
+					DrawRect(r);
+				}
+				trace(" ");
+			}
+			
+			private function DrawRect(r:Rectangle):void
+			{
+				_rectArea.graphics.clear();
+				_rectArea.graphics.lineStyle(1);
+				_rectArea.graphics.drawRect(0, 0, _rectArea.width, _rectArea.height);
+				_rectArea.graphics.drawRect(r.x, r.y, r.width, r.height);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Button label="Capture" x="0" y="500" click="OnCapture()"/>
+	<mx:Button label="Detector" x="0" y="550" click="OnDetector()"/>
+	
+</mx:Application>

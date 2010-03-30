@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundAlpha="0.1" backgroundColor="0x000000">
+
+	<mx:Script>
+		<![CDATA[
+		
+			[Bindable]
+			private var _percent:int = 0;
+			
+			public function updatePercent(val:Number):void
+			{
+				_percent = int(val * 100);
+			}
+		]]>
+	</mx:Script>
+
+
+
+	<mx:Label x="108.5" y="48" text="Progress" color="#000000" fontSize="36" fontWeight="bold"/>
+	
+	
+	<mx:Label id="percent" x="129" y="123" text="{_percent}" textAlign="right"/>
+	<mx:Label x="201" y="123" text="{resourceManager.getString('AppString', 'PA_Percent')}"/>
+	<mx:Button id="cancel" x="129" y="149" label="{resourceManager.getString('AppString', 'Button_Cancel')}"/>
+	
+</mx:Canvas>

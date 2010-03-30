@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.photoGallery.view.*"
+	width="100%" height="100%"
+	backgroundAlpha="0" backgroundColor="0x000000"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	creationComplete="OnWndCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.algorithm.CommonTools;
+		
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.photoGallery.controller.MainController;
+			import com.zzl.flex.photoGallery.model.GlobeModelLocator;
+			import com.zzl.flex.photoGallery.model.commands.LoadSourceManageWndCommand;
+		
+			private const ICON_CLOSE_DIA:int = 20;
+			
+			private var _model:GlobeModelLocator = GlobeModelLocator.inst;
+			private var _controller:MainController = MainController.inst;
+			
+			private var _localFolders:ArrayCollection;
+			private var _rssUrls:ArrayCollection;
+			
+			private function OnWndCreationComplete():void
+			{
+				CreateShadow();
+				DrawCloseIcon();
+				PrepareContent();
+			}
+			
+			private function CreateShadow():void
+			{
+				var shadow:DropShadowFilter = new DropShadowFilter;
+				shadow.distance = 0;
+				shadow.angle = 0;
+				shadow.alpha = 0.5;
+				shadow.blurX = 20;
+				shadow.blurY = 20;
+				shadow.strength = 1;
+				shadow.quality = 3;
+				this.filters = [shadow];
+			}
+			
+			private function DrawCloseIcon():void
+			{
+				var g:Graphics = btnArea.graphics;
+				g.clear();
+				
+				g.beginFill(0xFFFFFF);
+				g.drawCircle(outerFrame.width - ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2);
+				g.endFill();
+				
+				g.beginFill(0xFF0000);
+				g.drawCircle(outerFrame.width - ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA * 0.75 / 2);
+				g.endFill();
+				
+				var w:Number = (Math.SQRT2 - 1) * ICON_CLOSE_DIA / 2 / Math.SQRT2 + 1;
+				g.lineStyle(2, 0xFFFFFF);
+				g.moveTo(outerFrame.width - ICON_CLOSE_DIA + w, w);
+				g.lineTo(outerFrame.width - w, ICON_CLOSE_DIA - w);
+				g.moveTo(outerFrame.width - w, w);
+				g.lineTo(outerFrame.width - ICON_CLOSE_DIA + w, ICON_CLOSE_DIA - w);
+			}
+						
+			private function OnFrameMouseDown():void
+			{
+				outerFrame.startDrag();
+			}
+			
+			private function OnFrameMouseUp():void
+			{
+				outerFrame.stopDrag();
+			}
+			
+			private function OnMouseOverDragArea():void
+			{
+				drag_area.buttonMode = true;
+				drag_area.useHandCursor = true;
+			}
+			
+			private function OnMouseOutDragArea():void
+			{
+				drag_area.buttonMode = false;
+				drag_area.useHandCursor = false;
+			}
+			
+			private function OnClose():void
+			{
+				SaveData();
+				var c:LoadSourceManageWndCommand = new LoadSourceManageWndCommand(false, this);
+				_controller.handleCommand(LoadSourceManageWndCommand.C_LOAD_SOURCE_MANAGE_WND, c);
+			}
+			
+			private function SaveData():void
+			{
+				if (CommonTools.isSameSimpleArrayCollectionContent(_model.localSourceDataArray, slwLocal.lsData) == false)
+				{
+					_model.localSourceDataArray = slwLocal.lsData;
+				}
+				if (CommonTools.isSameSimpleArrayCollectionContent(_model.rssDataArray, slwRSS.lsData) == false)
+				{
+					_model.rssDataArray = slwRSS.lsData;
+				}
+			}
+			
+			private function PrepareContent():void
+			{
+				_localFolders = new ArrayCollection;
+				_rssUrls = new ArrayCollection;
+				
+				CommonTools.copySimpleArrayCollection(_localFolders, _model.localSourceDataArray);
+				CommonTools.copySimpleArrayCollection(_rssUrls, _model.rssDataArray);
+
+				slwLocal.lsData = _localFolders;
+				slwRSS.lsData = _rssUrls;
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="outerFrame" x="200" y="100" width="400" height="300">
+		
+		<mx:Canvas id="mainFrame" x="{ICON_CLOSE_DIA / 2}" y="{ICON_CLOSE_DIA / 2}"
+			width="{outerFrame.width - ICON_CLOSE_DIA}" height="{outerFrame.height - ICON_CLOSE_DIA}"
+			backgroundColor="0xC7C7C7"
+			borderColor="0x000000" borderThickness="2" borderStyle="solid">
+
+			<mx:TabBar id="tb" x="5" y="5" dataProvider="vs"/>
+			<mx:ViewStack id="vs" x="{tb.x}" y="{tb.y + tb.height + 5}"
+				width="{mainFrame.width - 3 * vs.x}" height="{mainFrame.height - vs.y - 10}">
+				<view:SimpleFolderSelectWnd id="slwLocal" label="Local Folder" width="100%" height="100%"/>
+				<view:SimpleListWnd id="slwRSS" label="RSS" width="100%" height="100%"/>
+			</mx:ViewStack>
+			
+		</mx:Canvas>
+		
+		<mx:Canvas id="btnArea" x="0" y="0" width="100%" height="100%">
+			<mx:Canvas id="drag_area" x="{ICON_CLOSE_DIA / 2}" y="{ICON_CLOSE_DIA / 2}"
+				width="{btnArea.width - 2 * ICON_CLOSE_DIA}" height="{ICON_CLOSE_DIA / 2}"
+				toolTip="Drag Area"
+				mouseDown="OnFrameMouseDown()" mouseUp="OnFrameMouseUp()"
+				mouseOver="OnMouseOverDragArea()" mouseOut="OnMouseOutDragArea()"/>
+			<mx:Canvas id="btn_close" x="{outerFrame.width - ICON_CLOSE_DIA}" y="0"
+				toolTip="Close"
+				width="{ICON_CLOSE_DIA}" height="{ICON_CLOSE_DIA}" click="OnClose()"/>
+		</mx:Canvas>
+	</mx:Canvas>
+
+</mx:Canvas>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DragPanel xmlns="PEUIComponent.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	x="100" y="100" width="222" height="160" borderStyle="outset" backgroundColor="#FFFFFF"
+	>
+	
+	<mx:Metadata>
+		[Event(name = "closePanel", type = "flash.events.Event")]
+	</mx:Metadata>
+
+	<mx:Script>
+		<![CDATA[
+			import ASCode.ActionManager;
+			import ASCode.PhotoAdjust.ExpContAdjAlg;
+			
+			private static var inst:ExpContAdjPanel = null;
+			private var slideClick:Boolean = false;
+			private var peAlgorithm:ExpContAdjAlg = null;
+		
+			public static function GetExpContAdjPanel():ExpContAdjPanel
+			{
+				if (inst == null)
+				{
+					inst = new ExpContAdjPanel;
+				}
+				inst.CreateAlgorithm();
+				return inst;
+			}
+			
+			public function SetBitmap(data:Bitmap):void
+			{
+				peAlgorithm.data = data;
+			}
+			
+			private function CreateAlgorithm():void
+			{
+				peAlgorithm = new ExpContAdjAlg;
+			}
+			
+			private function OnExpPress():void
+			{
+				slideClick = true;
+			}
+			
+			private function OnExpChange():void
+			{
+				peAlgorithm.Test(hs_Exposure.value, hs_contrast.value);
+			}
+			
+			private function OnExpRelease():void
+			{
+				slideClick = false;
+			}
+			
+			private function OnContPress():void
+			{
+				slideClick = true;
+			}
+			
+			private function OnContChange():void
+			{
+				peAlgorithm.Test(hs_Exposure.value, hs_contrast.value);
+			}
+			
+			private function OnContRelease():void
+			{
+				slideClick = false;
+			}
+			
+			override public function CanDrag(mx:Number, my:Number):Boolean
+			{
+				return !slideClick;
+			}
+			
+			private function OnClose():void
+			{
+				peAlgorithm.Execute();
+				EndAlgorithm();
+				dispatchEvent(new Event("closePanel"));
+			}
+			
+			private function EndAlgorithm():void
+			{
+				hs_Exposure.value = 0;
+				hs_contrast.value = 0;
+				peAlgorithm = null;
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="titlePanel" x="0" y="0" width="218" height="33" backgroundColor="#646464" borderStyle="solid">
+		<mx:Label x="10" y="6" text="Exposure &amp; Contrast" color="#FF0000" fontSize="12"/>
+		<mx:Button x="195" y="11" label="Close" width="15" height="11" click="OnClose()"/>
+	</mx:Canvas>
+	
+	<mx:VBox id="controlPanel" x="0" y="41" width="218" height="115" backgroundColor="#FFFFFF">
+		<mx:Label text="Exposure:" width="100%"/>
+		<mx:HSlider id="hs_Exposure" width="100%" minimum="-100" maximum="100" dataTipPrecision="0" dataTipOffset="1" snapInterval="1"
+			value="0" allowTrackClick="false" liveDragging="true"
+			thumbPress="OnExpPress()" thumbRelease="OnExpRelease()" change="OnExpChange()"/>
+		<mx:Label text="Contrast:" width="100%"/>
+		<mx:HSlider id="hs_contrast" width="100%" minimum="-100" maximum="100" dataTipPrecision="0" dataTipOffset="1" snapInterval="1"
+			value="0" allowTrackClick="false" liveDragging="true"
+			thumbPress="OnContPress()" thumbRelease="OnContRelease()" change="OnContChange()"/>
+	</mx:VBox>	
+	
+</DragPanel>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditFunctionPanel xmlns="com.Roxio.PhotoStar.UI.Left.EditComponent.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IStyleChangeObject">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.BlurAlg;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.SharpAlg;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			import com.Roxio.OnlineObject.DebugTool.TraceTool;
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+		
+			private const MIN_ADJ_VALUE:int = 0;
+			private const MAX_ADJ_VALUE:int = 10;
+			private const SLIDE_WIDTH:int = 190;
+			
+			[Bindable]
+			private var _sharpInst:SharpAlg;
+			[Bindable]
+			private var _blurInst:BlurAlg;
+		
+			public function updateStyle():void
+			{
+				this.setStyle("backgroundImage", resourceManager.getClass("AppPic", "FilterBg"));
+			}
+			
+			override public function ready2Close():void
+			{
+				TraceTool.Trace("FilterPanel -- ready2Close");
+				
+				if (_sharpInst != null || _blurInst != null)
+				{
+					if (GlobeSetting.done4Close == true)
+					{
+						ExecuteAdj();
+					}
+					else
+					{
+						CancelAdj();
+					}
+				}
+			}
+			
+			private function OnSharpen():void
+			{
+				if (_sharpInst == null)
+				{
+					_sharpInst = new SharpAlg;
+					_sharpInst.data = MainUIController.imageHolder.bitmap;
+				}
+
+				_sharpInst.test(hs_Sharpen.value);
+				
+				enableControl(true);
+			}
+			
+			private function OnBlur():void
+			{
+				if (_blurInst == null)
+				{
+					_blurInst = new BlurAlg;
+					_blurInst.data = MainUIController.imageHolder.bitmap;
+				}
+
+				_blurInst.test(hs_Blur.value);
+				
+				enableControl(true);
+			}
+			
+			private function CancelAdj():void
+			{
+				if (_sharpInst != null)
+				{
+					hs_Sharpen.value= 0;
+					_sharpInst = null;
+				}
+				else if (_blurInst != null)
+				{
+					hs_Blur.value= 0;
+					_blurInst = null;
+				}
+				enableControl(false);
+			}
+			
+			private function ExecuteAdj():void
+			{
+				if (_sharpInst != null)
+				{
+					_sharpInst.execute();
+					hs_Sharpen.value= 0;
+					_sharpInst = null;
+				}
+				else if (_blurInst != null)
+				{
+					_blurInst.execute();
+					hs_Blur.value= 0;
+					_blurInst = null;
+				}
+				enableControl(false);
+			}
+			
+			private function enableControl(en:Boolean):void
+			{
+				confirm.enabled = en;
+				discard.enabled = en;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Label x="10" y="35" text="{resourceManager.getString('AppString', 'FP_Sharpen')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Sharpen" x="43" y="51" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnSharpen()" enabled="{_blurInst == null}"/>
+		
+	<mx:Label x="10" y="72" text="{resourceManager.getString('AppString', 'FP_Blur')}" color="#FFFFFF"/>
+	<mx:HSlider id="hs_Blur" x="43" y="87" width="{SLIDE_WIDTH}"
+		minimum="{MIN_ADJ_VALUE}" maximum="{MAX_ADJ_VALUE}" snapInterval="1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="true" value="0"
+		change="OnBlur()" enabled="{_sharpInst == null}"/>
+	
+	<mx:Button id="confirm" x="216" y="3" label="Ok" click="ExecuteAdj()" enabled="false"/>
+	<mx:Button id="discard" x="142" y="3" label="Discard" click="CancelAdj()" enabled="false"/>
+	
+</EditFunctionPanel>

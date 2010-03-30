@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundColor="0xFFFFFF" backgroundAlpha="1"
+	cornerRadius="10"
+	borderThickness="10" borderColor="0xC7C7C7" borderStyle="solid"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="OnPanelCreationComplete()"
+	xmlns:view="com.zzl.flex.familymenu.view.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import mx.collections.ArrayCollection;
+		
+			import com.zzl.flex.familymenu.model.viewCommand.CreateChartCommand;
+			import com.zzl.flex.familymenu.model.ChartType;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.controller.MainController;
+		
+			private var _curStatic:String;
+			private var _controller:MainController = MainController.inst;
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
+			
+			private const GAP:int = 10;
+			private const TOP_X:int = 10
+			
+			private function OnPanelCreationComplete():void
+			{
+
+			}
+			
+			private function LoadStaticChart(val:String, chartType:String):void
+			{
+				if (_curStatic == val)
+				{
+					return;
+				}
+				
+				var sc:CreateChartCommand = new CreateChartCommand;
+				sc.target = this;
+				sc.chartParent = chartArea;
+				sc.chartType = chartType;
+				
+				switch (val)
+				{
+					// standard static data, pie chart
+					case "season":
+						sc.chartData = _controller.getSeasonStaticData();
+						break;
+					
+					case "category":
+						sc.chartData = _controller.getCategoryStaticData();
+						break;
+					
+					case "type":
+						sc.chartData = _controller.getTypeStaticData();
+						break;
+					
+					case "hot":
+						sc.chartData = _controller.getHotStaticData();
+						break;
+					
+					case "rate":
+						sc.chartData = _controller.getRateStaticData();
+						break;
+						
+					// TOP X static data, bar chart
+					case "topRate":
+						sc.chartData = _controller.getTopRateStaticData(TOP_X);
+						break;
+						
+					case "topUse":
+						sc.chartData = _controller.getTopUseStaticData(TOP_X);
+						break;
+						
+					case "topRecentAdd":
+						sc.chartData = _controller.getTopRecentAddStaticData(TOP_X);
+						break;
+						
+					case "topRecentUse":
+						sc.chartData = _controller.getTopRecentUseStaticData(TOP_X);
+						break;
+				}
+				_controller.handleCommand(CreateChartCommand.NAME, sc);
+			}
+			
+			override public function toString():String
+			{
+				return "DataStatisticsView";
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:RadioButtonGroup id="rbGroup"/>
+	<mx:HBox id="mainFrame" x="{GAP}" y="{GAP}" horizontalGap="0"
+		width="{this.width - 2 * GAP - 2 * this.getStyle('borderThickness')}"
+		height="{this.height - 2 * GAP - 2 * this.getStyle('borderThickness')}">
+		
+		<mx:Canvas id="opinionPanel" width="200" height="100%">
+			<mx:Accordion x="0" y="0" width="100%" height="100%">
+				<mx:HBox label="标准数据">
+					<mx:Spacer width="5"/>
+					<mx:VBox id="normalStatPanel" label="标准数据" width="100%" height="100%">
+						<mx:Spacer width="5"/>
+						<mx:RadioButton id="rb_season" label="按季节分类" groupName="opinionPanel" width="100%" click="LoadStaticChart('season', ChartType.PIE)"/>
+						<mx:RadioButton id="rb_category" label="按类别分类" groupName="opinionPanel" width="100%" click="LoadStaticChart('category', ChartType.PIE)"/>
+						<mx:RadioButton id="rb_type" label="按菜属分类" groupName="opinionPanel" width="100%" click="LoadStaticChart('type', ChartType.PIE)"/>
+						<mx:RadioButton id="rb_hot" label="按辣否分类" groupName="opinionPanel" width="100%" click="LoadStaticChart('hot', ChartType.PIE)"/>
+						<mx:RadioButton id="rb_rate" label="按级别分类" groupName="opinionPanel" width="100%" click="LoadStaticChart('rate', ChartType.PIE)"/>
+					</mx:VBox>
+				</mx:HBox>
+				
+				<mx:HBox label="TOP 10">
+					<mx:Spacer width="5"/>
+					<mx:VBox id="top10Panel" label="{'TOP ' + TOP_X.toString()}" width="100%" height="100%">
+						<mx:Spacer width="5"/>
+						<mx:RadioButton id="rb_topRate" label="等级最高" groupName="opinionPanel" width="100%" click="LoadStaticChart('topRate', ChartType.BAR)"/>
+						<mx:RadioButton id="rb_topUse" label="使用次数最多" groupName="opinionPanel" width="100%" click="LoadStaticChart('topUse', ChartType.BAR)"/>
+						<mx:RadioButton id="rb_topRecentAdd" label="最近添加" groupName="opinionPanel" width="100%" click="LoadStaticChart('topRecentAdd', ChartType.DG)"/>
+						<mx:RadioButton id="rb_topRecentUse" label="最近使用" groupName="opinionPanel" width="100%" click="LoadStaticChart('topRecentUse', ChartType.DG)"/>
+					</mx:VBox>
+				</mx:HBox>
+				
+				<mx:HBox label="数据变化表">
+					<mx:Spacer width="5"/>
+					<mx:VBox id="changeDataPanel" label="数据变化表" width="100%" height="100%">
+					
+					</mx:VBox>
+				</mx:HBox>
+			</mx:Accordion>
+		</mx:Canvas>
+		
+		<mx:Spacer id="sh" width="{GAP}"/>
+		
+		<mx:Canvas id="chartArea" width="{mainFrame.width - opinionPanel.width - sh.width}" height="100%">
+
+		</mx:Canvas>
+		
+	</mx:HBox>
+	
+</mx:Canvas>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.familymenu.view.*"
+	backgroundColor="0xFFFFFF" backgroundAlpha="1"
+	cornerRadius="10"
+	borderThickness="10" borderColor="0xB79362" borderStyle="solid"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="OnPanelCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.collections.ArrayCollection;
+		
+			import com.zzl.flex.familymenu.controller.MainController;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.customEvent.ComplexSearchResultEvent;
+			import com.zzl.flex.familymenu.model.customEvent.DishPickEvent;
+			
+			import com.roxio.online.flexLogger.controller.Logger;
+			import com.roxio.online.flexLogger.controller.LogManager;
+			
+			private var _logger:Logger;
+			private var _controller:MainController = MainController.inst;
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
+			
+			[Bindable]
+			private var _dgResultArray:ArrayCollection = new ArrayCollection;
+			
+			private const GAP:int = 10;
+			
+			private function OnPanelCreationComplete():void
+			{
+				_logger = LogManager.inst.getLogger("PickFoodView");
+				_logger.fine("OnPanelCreationComplete", "PickFoodView creation complete!");
+				
+				PrepareContent();
+			}
+			
+			private function PrepareContent():void
+			{
+				if (complexSearchPanel != null)
+				{
+					complexSearchPanel.dishs = _modelLocator.dishs;
+					complexSearchPanel.addEventListener(ComplexSearchResultEvent.E_COMPLEX_SEARCH_RESULT, OnComplexSearchResult, false, 0, true);
+				}
+			}
+			
+			private function OnComplexSearchResult(e:ComplexSearchResultEvent):void
+			{
+				_dgResultArray = e.result;
+				_dgResultArray.refresh();
+			}
+			
+			private function OnDGDishSelect():void
+			{
+				/*
+				var e:DishPickEvent = new DishPickEvent(DishPickEvent.E_DISH_PICK);
+				e.result = dgResult.selectedItem as DishDetail;
+				dispatchEvent(e);
+				*/
+				if (autoFoodPicker != null)
+				{
+					autoFoodPicker.updateSelectedDish(dgResult.selectedItem as DishDetail);
+				}
+			}
+			
+			override public function toString():String
+			{
+				return "PickFoodView";
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:HBox id="mainFrame" x="{GAP}" y="{GAP}" horizontalGap="0"
+		width="{this.width - 2 * GAP - 2 * this.getStyle('borderThickness')}"
+		height="{this.height - 2 * GAP - 2 * this.getStyle('borderThickness')}">
+
+		<mx:Canvas id="opinionPanel" width="400" height="100%">
+			<mx:Accordion x="0" y="0" width="100%" height="100%">
+				<view:ComplexSearch id="complexSearchPanel" label="条件搜索" width="100%" height="100%"/>
+				<view:AutoFoodPickerWnd id="autoFoodPicker" label="自动点菜" width="100%" height="100%"/>
+			</mx:Accordion>
+		</mx:Canvas>
+		
+		<mx:Spacer id="sh" width="{GAP}"/>
+		
+		<mx:VBox width="{mainFrame.width - opinionPanel.width - sh.width}" height="100%">
+			<mx:DataGrid id="dgResult" width="100%" height="100%" dataProvider="{_dgResultArray}"
+				doubleClickEnabled="true" doubleClick="OnDGDishSelect()">
+				<mx:columns>
+					<mx:DataGridColumn headerText="菜名" dataField="name"/>
+					<mx:DataGridColumn headerText="类别" dataField="category"/>
+					<mx:DataGridColumn headerText="种类" dataField="dishType"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+
+	</mx:HBox>
+	
+</mx:Canvas>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%"
+	backgroundAlpha="0" backgroundColor="0x000000"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	creationComplete="OnWndCreationComplete()"
+	implements="com.zzl.flex.familymenu.model.INotifier">
+
+	<mx:Script>
+		<![CDATA[
+		
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.algorithm.CommonTools;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.model.viewCommand.SimpleSearchViewCloseCommand;
+			import com.zzl.flex.familymenu.model.viewCommand.SearchDishCommand;
+			import com.zzl.flex.familymenu.model.customEvent.DishPickEvent;
+			import com.zzl.flex.familymenu.controller.MainController;
+		
+			private const ICON_CLOSE_DIA:int = 20;
+			
+			private var _model:GlobeModelLocator = GlobeModelLocator.inst;
+			private var _controller:MainController = MainController.inst;
+			private var _dishs:ArrayCollection;
+			[Bindable]
+			private var _displayArray:ArrayCollection = new ArrayCollection;
+			private var _selectedDish:DishDetail;
+			
+			private var _listenerFunctionList:ArrayCollection = new ArrayCollection;
+			
+			public function addListener(fn:Function):Boolean
+			{
+				if (_listenerFunctionList.getItemIndex(fn) == -1)
+				{
+					_listenerFunctionList.addItem(fn);
+					return true;
+				}
+				return false;
+			}
+			
+			public function removeListener(fn:Function):Boolean
+			{
+				var i:int = _listenerFunctionList.getItemIndex(fn);
+				if (i != -1)
+				{
+					_listenerFunctionList.removeItemAt(i);
+					return true;
+				}
+				return false;
+			}
+			
+			public function removeAllListener():void
+			{
+				_listenerFunctionList.removeAll();
+			}
+			
+			public function notifyListener(param:Object):void
+			{
+				for each (var f:Function in _listenerFunctionList)
+				{
+					f(param as DishPickEvent);
+				}
+			}
+			
+			public function get selectedDish():DishDetail
+			{
+				return _selectedDish;
+			}
+			
+			private function OnWndCreationComplete():void
+			{
+				CreateShadow();
+				DrawCloseIcon();
+				PrepareContent();
+				
+				ip_name.setFocus();
+			}
+			
+			private function CreateShadow():void
+			{
+				var shadow:DropShadowFilter = new DropShadowFilter;
+				shadow.distance = 0;
+				shadow.angle = 0;
+				shadow.alpha = 0.5;
+				shadow.blurX = 20;
+				shadow.blurY = 20;
+				shadow.strength = 1;
+				shadow.quality = 3;
+				this.filters = [shadow];
+			}
+			
+			private function DrawCloseIcon():void
+			{
+				var g:Graphics = btnArea.graphics;
+				g.clear();
+				
+				g.beginFill(0xFFFFFF);
+				g.drawCircle(outerFrame.width - ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2);
+				g.endFill();
+				
+				g.beginFill(0xFF0000);
+				g.drawCircle(outerFrame.width - ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA / 2, ICON_CLOSE_DIA * 0.75 / 2);
+				g.endFill();
+				
+				var w:Number = (Math.SQRT2 - 1) * ICON_CLOSE_DIA / 2 / Math.SQRT2 + 1;
+				g.lineStyle(2, 0xFFFFFF);
+				g.moveTo(outerFrame.width - ICON_CLOSE_DIA + w, w);
+				g.lineTo(outerFrame.width - w, ICON_CLOSE_DIA - w);
+				g.moveTo(outerFrame.width - w, w);
+				g.lineTo(outerFrame.width - ICON_CLOSE_DIA + w, ICON_CLOSE_DIA - w);
+			}
+			
+			private function PrepareContent():void
+			{
+				_displayArray.removeAll();
+				_dishs = _model.dishs;
+				for (var i:int = 0; i < _dishs.length; ++i)
+				{
+					_displayArray.addItem(_dishs[i]);
+				}
+				_displayArray.refresh();
+			}
+			
+			private function OnInputKeyUp():void
+			{
+				//OnFindClick();
+				
+				// Note, we don't use full search here just want to make it quicker
+				
+				var ip:String = ip_name.text;
+				var l:int = ip.length;
+				
+				// re-orginaze display list
+				_displayArray.removeAll();
+				for (var i:int = 0; i < _dishs.length; ++i)
+				{
+					if (String((_dishs[i] as DishDetail).name).substr(0, l) == ip)
+					{
+						_displayArray.addItem(_dishs[i]);
+					}
+				}
+				_displayArray.refresh();
+				
+			}
+			
+			private function PrepareKeywordsCondition():ArrayCollection
+			{
+				return CommonTools.getArrayBySpace(CommonTools.trimString(ip_name.text));
+			}
+			
+			private function OnSearchCallBack(r:ArrayCollection):void
+			{
+				_displayArray.removeAll();
+				_displayArray = r;
+				_displayArray.refresh();
+			}
+			
+			private function OnFindClick():void
+			{
+				var ip:String = ip_name.text;
+				
+				var c:SearchDishCommand = new SearchDishCommand;
+				c.searchRang = _dishs;
+				c.keywords = PrepareKeywordsCondition();
+				c.resultCallbackFunction = OnSearchCallBack;
+				
+				_controller.handleCommand(SearchDishCommand.NAME, c);
+			}
+			
+			private function OnFrameMouseDown():void
+			{
+				outerFrame.startDrag();
+			}
+			
+			private function OnFrameMouseUp():void
+			{
+				outerFrame.stopDrag();
+			}
+			
+			private function OnMouseOverDragArea():void
+			{
+				drag_area.buttonMode = true;
+				drag_area.useHandCursor = true;
+			}
+			
+			private function OnMouseOutDragArea():void
+			{
+				drag_area.buttonMode = false;
+				drag_area.useHandCursor = false;
+			}
+			
+			private function OnClose():void
+			{
+				var c:SimpleSearchViewCloseCommand = new SimpleSearchViewCloseCommand;
+				c.target = this;
+				_controller.handleCommand(SimpleSearchViewCloseCommand.NAME, c);
+			}
+			
+			private function OnListDoubleClick():void
+			{
+				_selectedDish = ls.selectedItem as DishDetail;
+				var e:DishPickEvent = new DishPickEvent(DishPickEvent.E_DISH_PICK);
+				e.result = _selectedDish;
+				notifyListener(e);
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="outerFrame" x="200" y="100" width="400" height="300">
+		
+		<mx:Canvas id="mainFrame" x="{ICON_CLOSE_DIA / 2}" y="{ICON_CLOSE_DIA / 2}"
+			width="{outerFrame.width - ICON_CLOSE_DIA}" height="{outerFrame.height - ICON_CLOSE_DIA}"
+			backgroundColor="0xC7C7C7"
+			borderColor="0x000000" borderThickness="2" borderStyle="solid">
+			
+			<mx:Label id="lb_title" x="10" y="25" text="输入菜名或关键字（双击选中）："/>
+			<mx:TextInput id="ip_name" x="{lb_title.x}" y="54" width="{find.x - ip_name.x - lb_title.x}" keyUp="OnInputKeyUp()"/>
+			<mx:Button id="find" x="{mainFrame.width - lb_title.x - find.width - 2}" y="{ip_name.y}" width="20" height="20" click="OnFindClick()">
+				<mx:icon>@Embed(source='../../../../../../assets/btn_find.png')</mx:icon>
+			</mx:Button>
+			<mx:List id="ls" x="{lb_title.x}" y="{ip_name.y + ip_name.height +15}"
+				width="{mainFrame.width - ls.x * 2}" height="{mainFrame.height - ls.y - 20}"
+				dataProvider="{_displayArray}" labelField="name"
+				doubleClickEnabled="true" doubleClick="OnListDoubleClick()">
+			</mx:List>
+			
+		</mx:Canvas>
+		
+		<mx:Canvas id="btnArea" x="0" y="0" width="100%" height="100%">
+			<mx:Canvas id="drag_area" x="{ICON_CLOSE_DIA / 2}" y="{ICON_CLOSE_DIA / 2}"
+				width="{btnArea.width - 2 * ICON_CLOSE_DIA}" height="{ICON_CLOSE_DIA / 2}"
+				toolTip="拖拽区域"
+				mouseDown="OnFrameMouseDown()" mouseUp="OnFrameMouseUp()"
+				mouseOver="OnMouseOverDragArea()" mouseOut="OnMouseOutDragArea()"/>
+			<mx:Canvas id="btn_close" x="{outerFrame.width - ICON_CLOSE_DIA}" y="0"
+				toolTip="关闭"
+				width="{ICON_CLOSE_DIA}" height="{ICON_CLOSE_DIA}" click="OnClose()"/>
+		</mx:Canvas>
+	</mx:Canvas>
+
+</mx:Canvas>

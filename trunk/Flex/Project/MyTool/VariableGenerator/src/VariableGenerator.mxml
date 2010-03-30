@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import flash.system.System;
+		
+			[Bindable]
+			private var _variables:ArrayCollection = new ArrayCollection;
+			
+			private function OnClear():void
+			{
+				_variables.removeAll();
+				_variables.refresh();
+				
+				out_panel.text = "";
+				in_variable.text = "";
+			}
+			
+			private function OnCopy():void
+			{
+				System.setClipboard(out_panel.text);
+			}
+			
+			private function OnDel():void
+			{
+				if (dg.selectedIndex >= 0)
+				{
+					_variables.removeItemAt(dg.selectedIndex);
+					_variables.refresh();
+				}
+			}
+			
+			private function OnGenerate():void
+			{
+				out_panel.text = "";
+				for each (var v:Object in _variables)
+				{
+					var names:ArrayCollection = v.name;
+					var type:String = GetType(String(v.type).toLowerCase());
+					if (names.length == 0)
+					{
+						continue;
+					}
+					
+					/*
+					//-------------------------------------------------------------------
+					// _drivenMode
+					private var _drivenMode:String;
+					public static const E_DRIVEN_MODE_UPDATE:String = "Event_DrivenModeUpdate";
+					public function set drivenMode(val:String):void
+					{
+						_drivenMode = val;
+						dispatchEvent(new Event(E_DRIVEN_MODE_UPDATE));
+					}
+					public function get drivenMode():String
+					{
+						return _drivenMode;
+					}
+					*/
+					
+					var vName:String = "_" + String(names[0]).toLowerCase();
+					for (var i:int = 1; i < names.length; ++i)
+					{
+						vName += GetCamelString(String(names[i]));
+					}
+					
+					var eName:String = "E";
+					for (i = 0; i < names.length; ++i)
+					{
+						eName += "_" + String(names[i]).toUpperCase();
+					}
+					eName += "_UPDATE";
+					
+					var s:String = "//-------------------------------------------------------------------\n";
+					s += "// " + vName + "\n";
+					s += "private var " + vName + ":" + type + ";\n"
+					s += "public static const " + eName;
+					s += ":String = \"Event_";
+					for (i = 0; i < names.length; ++i)
+					{
+						s += GetCamelString(String(names[i]));
+					}
+					s += "Update\";\n";
+					s += "public function set " + vName.substr(1, vName.length - 1) + "(val:" + type + "):void\n{\n";
+					s += "\t" + vName + " = val;\n";
+					s += "\tdispatchEvent(new Event(" + eName + "));\n}\n";
+					s += "public function get " + vName.substr(1, vName.length - 1) + "():" + type + "\n{\n";
+					s += "\treturn " + vName + ";\n}\n\n";
+					
+					out_panel.text += s;
+				}
+			}
+			
+			private function GetCamelString(val:String):String
+			{
+				var s:String = val.toLowerCase();
+				var s2:String = s.charAt(0).toUpperCase() + s.substr(1, s.length - 1);
+				return s2;
+			}
+			
+			private function GetType(val:String):String
+			{
+				switch (val.toLowerCase())
+				{
+					case "string":
+						return "String";
+						
+					case "number":
+						return "Number";
+
+					case "boolean":
+						return "Boolean";
+						
+					case "array":
+						return "Array";
+						
+					case "a":
+						return "Array";
+						
+					case "ac":
+						return "ArrayCollection";
+						
+					case "arrayCollection":
+						return "ArrayCollection";
+						
+					default:
+						return val;
+				}
+			}
+			
+			private function OnInput(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ENTER)
+				{
+					var a:Array = in_variable.text.split(" ");
+					var ac:ArrayCollection = new ArrayCollection(a);
+					var vtype:String = String(ac.getItemAt(ac.length - 1));
+					ac.removeItemAt(ac.length - 1);
+					_variables.addItem({name: ac, type: vtype});
+					in_variable.text = "";
+				}
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:TextArea id="out_panel" x="10" y="10" width="{this.width - 30 - in_variable.width}" height="{this.height - 60}"/>
+	<mx:TextInput id="in_variable" x="{out_panel.x + out_panel.width + 10}" y="10" width="250" keyUp="OnInput(event)"/>
+	
+	<mx:DataGrid id="dg" x="{in_variable.x}" y="{in_variable.y + in_variable.height + 10}"
+		width="{in_variable.width}" height="{out_panel.y + out_panel.height - dg.y}"
+		dataProvider="{_variables}">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Name" dataField="name"/>
+			<mx:DataGridColumn headerText="Type" dataField="type"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+	<mx:HBox x="10" y="{out_panel.y + out_panel.height + 10}" width="100%" height="30"  horizontalAlign="right">
+		<mx:Button label="Delete" click="OnDel()"/>
+		<mx:Button label="Clear" click="OnClear()"/>
+		<mx:Button label="Generate" click="OnGenerate()"/>
+		<mx:Button label="Copy to clipboard" click="OnCopy()"/>
+		<mx:Spacer width="10"/>
+	</mx:HBox>
+	
+</mx:Application>

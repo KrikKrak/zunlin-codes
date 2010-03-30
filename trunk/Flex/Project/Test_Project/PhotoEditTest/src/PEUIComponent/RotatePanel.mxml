@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DragPanel xmlns="PEUIComponent.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	x="150" y="150" width="222" height="82" borderStyle="outset" backgroundColor="#FFFFFF"
+	>
+	
+	<mx:Metadata>
+		[Event(name = "closePanel", type = "flash.events.Event")]
+	</mx:Metadata>
+
+	<mx:Script>
+		<![CDATA[
+			import ASCode.PhotoEditBitmap;
+			import ASCode.ActionManager;
+			import ASCode.PhotoAdjust.StraightenAlgorithm;
+			import ASCode.PhotoAdjust.FlipAlgorithm;
+			
+			[Bindable]
+			private var rotateDir:Array = (["CW", "CCW", "Ver", "Hor"]);
+			
+			private static var inst:RotatePanel = null;
+			private var picData:PhotoEditBitmap;
+		
+			public static function GetRotatePanel():RotatePanel
+			{
+				if (inst == null)
+				{
+					inst = new RotatePanel;
+				}
+				return inst;
+			}
+			
+			public function SetBitmap(data:PhotoEditBitmap):void
+			{
+				picData = data;
+			}
+			
+			override public function CanDrag(mx:Number, my:Number):Boolean
+			{
+				return true;
+			}
+			
+			private function OnDone():void
+			{
+				switch (dir.value)
+				{
+					case "CW":
+						Rotate(90);
+						break;
+						
+					case "CCW":
+						Rotate(-90);
+						break;
+						
+					case "Ver":
+						Flip(FlipAlgorithm.MIRROR_VERTICAL);
+						break;
+						
+					case "Hor":
+						Flip(FlipAlgorithm.MIRROR_HORIZONTAL);
+						break;
+						
+					default:
+						return;
+				}
+			}
+			
+			private function OnClose():void
+			{
+				dispatchEvent(new Event("closePanel"));
+			}
+			
+			private function Flip(dir:uint):void
+			{
+				var flip:FlipAlgorithm = new FlipAlgorithm;
+				flip.data = picData;
+				flip.param = dir;
+				flip.Execute();
+				OnClose();
+			}
+			
+			private function Rotate(angle:Number):void
+			{
+				var radAngle:Number = angle * Math.PI / 180;
+				var rotate:StraightenAlgorithm = new StraightenAlgorithm;
+				rotate.data = picData;
+				rotate.param = radAngle;
+				rotate.Execute();
+				OnClose();
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="titlePanel" x="0" y="0" width="218" height="33" backgroundColor="#646464" borderStyle="solid">
+		<mx:Label x="10" y="6" text="Rotate" color="#FF0000" fontSize="12"/>
+		<mx:Button x="195" y="11" label="Close" width="15" height="11" click="OnClose()"/>
+	</mx:Canvas>
+
+	<mx:ComboBox id="dir" width="96" dataProvider="{rotateDir}" x="24" y="46"/>
+	<mx:Button label="Done" x="141" y="46" click="OnDone()"/>
+	
+</DragPanel>

@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.familymenu.view.*"
+	backgroundColor="0xC7C7C7"
+	borderColor="0x000000" borderThickness="1" borderStyle="solid"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	width="700" height="400"
+	creationComplete="OnPanelCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+		
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.algorithm.CommonTools;
+
+			import com.zzl.flex.algorithm.GUIDGenerator;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			import com.zzl.flex.familymenu.model.DishType;
+			import com.zzl.flex.familymenu.model.DishCategory;
+			import com.zzl.flex.familymenu.model.viewCommand.NewDishSubmitCommand;
+			import com.zzl.flex.familymenu.model.viewCommand.NewDishCancelCommand;
+			import com.zzl.flex.familymenu.model.viewCommand.CreateSimpleSearchViewCommand;
+			import com.zzl.flex.familymenu.model.customEvent.DishPickEvent;
+			import com.zzl.flex.familymenu.controller.CommonEventCenter;
+			import com.zzl.flex.familymenu.controller.MainController;
+			
+			
+			private var _controller:MainController = MainController.inst;
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst; 
+			private var _seasonArray:ArrayCollection;
+			
+			private var _id:String = "";
+			private var _createDate:Date;
+			
+			[Bindable]
+			private var _combineWith:ArrayCollection = new ArrayCollection;
+			
+			private const SMALL_BUTTON_SIZE:int = 20;
+			
+			public function close():void
+			{
+				CommonEventCenter.inst.removeEventListener(CommonEventCenter.E_APPLICATION_RESIZE, OnMainAppResize);
+			}
+			
+			private function OnPanelCreationComplete():void
+			{
+				CommonEventCenter.inst.addEventListener(CommonEventCenter.E_APPLICATION_RESIZE, OnMainAppResize, false, 0, true);
+
+				PositionSelf();
+				CreateShadow();
+				
+				PrepareSeason();
+				PrepareCategory();
+				PrepareDishType();
+				
+				if (_modelLocator.newDishViewModel == GlobeModelLocator.NEW_DISK_VIEW_MODEL_CREATE)
+				{
+					_id = GUIDGenerator.getGUID();
+					_createDate = new Date;
+					recentDatePicker.selectedDate = new Date;
+					useCount.value = 1;
+				}
+				else
+				{
+					PrepareContent();
+				}
+				
+				dishName.setFocus();
+			}
+			
+			private function PrepareContent():void
+			{
+				var dish:DishDetail = _modelLocator.curDish;
+				_id = dish.id;
+				dishName.text = dish.name;
+				category.selectedItem = dish.category;
+				isHot.selected = dish.isHot;
+				SyncSeasonData(dish.suitableSeason);
+				SyncCombineDishData(dish.combineWith);
+				rateStar.rate = dish.rate;
+				_createDate = dish.createDate;
+				recentDatePicker.selectedDate = dish.recentUsedDate;
+				useCount.value = dish.usedTimes;
+				dishType.selectedItem = dish.dishType;
+				SyncContent(dish.content);
+				ip_otherInfo.text = dish.notes;
+			}
+			
+			private function SyncContent(c:ArrayCollection):void
+			{
+				ip_content.text = c.toArray().join(" ");
+			}
+			
+			private function SyncSeasonData(m:ArrayCollection):void
+			{
+				for (var i:int = 0; i < _seasonArray.length; ++i)
+				{
+					(_seasonArray[i] as CheckBox).selected = false;
+				}
+				for (i = 0; i < m.length; ++i)
+				{
+					(_seasonArray[Math.min(m[i] - 1, 3)] as CheckBox).selected = true;
+				}
+			}
+			
+			private function SyncCombineDishData(c:ArrayCollection):void
+			{
+				_combineWith = c;
+			}
+			
+			private function CreateShadow():void
+			{
+				var shadow:DropShadowFilter = new DropShadowFilter;
+				shadow.distance = 0;
+				shadow.angle = 0;
+				shadow.alpha = 0.5;
+				shadow.blurX = 20;
+				shadow.blurY = 20;
+				shadow.strength = 1;
+				shadow.quality = 3;
+				this.filters = [shadow];
+			}
+			
+			private function PrepareSeason():void
+			{
+				var season:Array = new Array;
+				season.push(GlobeModelLocator.SPRING);
+				season.push(GlobeModelLocator.SUMMER);
+				season.push(GlobeModelLocator.FALL);
+				season.push(GlobeModelLocator.WINTER);
+
+				_seasonArray = new ArrayCollection;
+				for (var i:int = 0; i < 4; ++i)
+				{
+					var mcb:CheckBox = new CheckBox;
+					mcb.label = season[i];
+					mcb.selected = true;
+					suitableSeason.addChild(mcb);
+					_seasonArray.addItem(mcb);
+				}
+
+				var now:Date = new Date;
+				(_seasonArray[int(now.month / 3)] as CheckBox).selected = true;
+			}
+			
+			private function PrepareCategory():void
+			{
+				var dishCategoryMap:ArrayCollection = _controller.getDishCategortMap();
+				category.dataProvider = dishCategoryMap;
+			}
+			
+			private function PrepareDishType():void
+			{
+				var dishTypeMap:ArrayCollection = _controller.getDishTypeMap();
+				dishType.dataProvider = dishTypeMap;
+			}
+			
+			private function OnMainAppResize(e:Event):void
+			{
+				if (this.parent.width < _modelLocator.appMinWidth || this.parent.height < _modelLocator.appMinHeight)
+				{
+					return;
+				}
+				
+				PositionSelf();
+			}
+			
+			private function PositionSelf():void
+			{
+				this.x = (parent.width - this.width) / 2;
+				this.y = (parent.height - this.height) / 2;
+			}
+			
+			private function OnSubmitClick():void
+			{
+				var n:String = CommonTools.trimString(dishName.text);
+				if (n.length == 0)
+				{
+					SendCancelCommand();
+					return;
+				}
+				
+				dishName.text = n;
+				ip_content.text = CommonTools.trimString(ip_content.text);
+				ip_otherInfo.text = CommonTools.trimString(ip_otherInfo.text);
+				var d:DishDetail = GenerateDishStruct();
+					
+				if (_modelLocator.newDishViewModel == GlobeModelLocator.NEW_DISK_VIEW_MODEL_CREATE)
+				{	
+					SendSaveDishCommand(d);
+				}
+				else
+				{
+					if (d.isSameDish(_modelLocator.curDish) == false)
+					{
+						SendSaveDishCommand(d);
+					}
+					else
+					{
+						SendCancelCommand();
+					}
+				}
+			}
+			
+			private function SendSaveDishCommand(d:DishDetail):void
+			{
+				var p:NewDishSubmitCommand = new NewDishSubmitCommand;
+				p.target = this;
+				p.dishDetail = d;
+				_controller.handleCommand(NewDishSubmitCommand.NAME, p);
+			}
+			
+			private function SendCancelCommand():void
+			{
+				var p:NewDishCancelCommand = new NewDishCancelCommand;
+				p.target = this;
+				_controller.handleCommand(NewDishCancelCommand.NAME, p);
+			}
+			
+			private function GenerateDishStruct():DishDetail
+			{
+				var dish:DishDetail = new DishDetail;
+				dish.id = _id;
+				dish.name = dishName.text;
+				dish.isHot = isHot.selected;
+				dish.category = GetDishCategory();
+				dish.suitableSeason = GetSuitableSeason();
+				dish.rate = rateStar.rate;
+				dish.combineWith = _combineWith;
+				dish.usedTimes = useCount.value;
+				dish.dishType = GetDishType();
+				dish.recentUsedDate = recentDatePicker.selectedDate;
+				dish.createDate = _createDate;
+				dish.notes = ip_otherInfo.text
+				dish.content = GetContent();
+				return dish;
+			}
+			
+			private function GetContent():ArrayCollection
+			{
+				return CommonTools.getArrayBySpace(CommonTools.trimString(ip_content.text));
+			}
+			
+			private function GetDishCategory():String
+			{
+				return category.selectedLabel;
+			}
+			
+			private function GetDishType():String
+			{
+				return dishType.selectedLabel;
+			}
+			
+			private function GetSuitableSeason():ArrayCollection
+			{
+				var a:ArrayCollection = new ArrayCollection;
+				for (var i:int = 0; i < 4; ++i)
+				{
+					if ((_seasonArray[i] as CheckBox).selected == true)
+					{
+						a.addItem(i + 1);
+					}
+				}
+				return a;
+			}
+			
+			private function OnAddClick():void
+			{
+				var c:CreateSimpleSearchViewCommand = new CreateSimpleSearchViewCommand;
+				c.target = this;
+				c.listenerFn = OnSimpleSearchResult;
+				_controller.handleCommand(CreateSimpleSearchViewCommand.NAME, c);
+			}
+			
+			private function OnSimpleSearchResult(e:DishPickEvent):void
+			{
+				var dish:DishDetail = e.result;
+				if (dish == null)
+				{
+					return;
+				}
+				
+				for (var i:int = 0; i < _combineWith.length; ++i)
+				{
+					if (_combineWith[i].id == dish.id)
+					{
+						return;
+					}
+				}
+				
+				_combineWith.addItem({id: dish.id, name: dish.name});
+				_combineWith.refresh();
+			}
+			
+			private function OnRemoveClick():void
+			{
+				if (combineDish.selectedItem != null)
+				{
+					_combineWith.removeItemAt(_combineWith.getItemIndex(combineDish.selectedItem));
+					_combineWith.refresh();
+				}
+			}
+			
+			private function OnCategoryChange():void
+			{
+				if (category.selectedLabel == DishCategory.NOSH || category.selectedLabel == DishCategory.OTHER)
+				{
+					dishType.selectedItem = DishType.OTHER;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="basicInfoPanel" width="500" height="100%">
+		<mx:Form id="form" x="10" y="10" width="{basicInfoPanel.width - form.x}" height="{basicInfoPanel.height - form.y}" verticalGap="5">
+			<mx:FormHeading label="基本信息"/>
+			<mx:FormItem label="菜名" width="100%">
+				<mx:TextInput id="dishName" width="100%" maxChars="50"/>
+			</mx:FormItem>
+			<mx:FormItem label="所属类别" width="100%">
+				<mx:ComboBox id="category" width="100%" change="OnCategoryChange()"/>
+			</mx:FormItem>
+			<mx:FormItem label="菜属种类" width="100%">
+				<mx:ComboBox id="dishType" width="100%"/>
+			</mx:FormItem>
+			<mx:FormItem label="辛辣" width="100%">
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:CheckBox id="isHot" label="辣"/>
+					<mx:Spacer width="20"/>
+					<mx:Label text="使用次数"/>
+					<mx:NumericStepper id="useCount" minimum="0" maximum="10000" stepSize="1"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="最近使用日期" width="100%">
+				<mx:DateField id="recentDatePicker" width="100%" textAlign="right"/>
+			</mx:FormItem>
+			<mx:FormItem label="可用月份" width="100%">
+				<mx:Tile id="suitableSeason" width="100%" height="25"/>
+			</mx:FormItem>
+			<mx:FormItem label="配菜" width="100%">
+				<mx:Canvas id="combineDishPanel" width="100%" height="70">
+					<mx:List id="combineDish" x="0" y="0"
+						width="{combineDishPanel.width - SMALL_BUTTON_SIZE * 2}" height="100%"
+						dataProvider="{_combineWith}" labelField="name"/>
+					<mx:Button id="btn_add" label=""
+						x="{combineDishPanel.width - SMALL_BUTTON_SIZE}" y="{(combineDishPanel.height - 2 * SMALL_BUTTON_SIZE) / 3}"
+						width="{SMALL_BUTTON_SIZE}" height="{SMALL_BUTTON_SIZE}" click="OnAddClick()">
+						<mx:icon>@Embed(source='../../../../../../assets/btn_add.png')</mx:icon>
+					</mx:Button>
+					<mx:Button id="btn_remove" label=""
+						x="{btn_add.x}" y="{btn_add.y + btn_add.height + (combineDishPanel.height - 2 * SMALL_BUTTON_SIZE) / 3}"
+						width="{SMALL_BUTTON_SIZE}" height="{SMALL_BUTTON_SIZE}" click="OnRemoveClick()">
+						<mx:icon>@Embed(source='../../../../../../assets/btn_remove.png')</mx:icon>
+					</mx:Button>
+				</mx:Canvas>
+			</mx:FormItem>
+			<mx:FormItem label="等级" width="100%">
+				<view:RateStar id="rateStar"/>
+			</mx:FormItem>
+			<mx:FormItem label="" width="100%">
+				<mx:HBox width="100%" horizontalAlign="right" verticalAlign="middle" horizontalGap="10">
+					<mx:Button id="btn_submit" label="确定" click="OnSubmitClick()"/>
+					<mx:Button id="btn_cancel" label="取消" click="SendCancelCommand()"/>
+				</mx:HBox>
+			</mx:FormItem>
+		</mx:Form>
+	</mx:Canvas>
+	
+	<mx:VRule id="vLine" x="{basicInfoPanel.x + basicInfoPanel.width + 1}" y="{basicInfoPanel.y + form.y}"
+		width="2" height="{this.height - 2 * vLine.y}" strokeWidth="2" strokeColor="0x000000"/>
+		
+	<mx:Canvas id="additionInfoPanel" x="{vLine.x + 15}" y="{basicInfoPanel.y}"
+		width="{this.width - additionInfoPanel.x - 30}" height="100%">
+		
+		<mx:VBox width="100%" height="100%">
+			<mx:Spacer height="{form.y + 10}"/>
+			<mx:Label width="100%" text="其他信息" textAlign="center" fontWeight="bold"/>
+			<mx:Label text="原料(用空格分隔)："/>
+			<mx:TextArea id="ip_content" width="100%" height="100"/>
+			<mx:Label text="备注："/>
+			<mx:TextArea id="ip_otherInfo" width="100%" height="150"/>
+			
+		</mx:VBox>
+		
+	</mx:Canvas>
+	
+</mx:Canvas>
