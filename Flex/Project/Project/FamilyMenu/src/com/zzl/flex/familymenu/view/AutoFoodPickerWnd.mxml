@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	creationComplete="OnCreateComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.collections.ArrayCollection;
+			
+			import com.zzl.flex.familymenu.controller.MainController;
+			import com.zzl.flex.familymenu.model.viewCommand.CreateSimpleSearchViewCommand;
+			import com.zzl.flex.familymenu.model.customEvent.DishPickEvent;
+			import com.zzl.flex.familymenu.model.DishDetail;
+			
+			private var _controller:MainController = MainController.inst;
+			
+			[Bindable]
+			private var _combineWith:ArrayCollection = new ArrayCollection;
+			
+			private const GAP:int = 5;
+			private const SMALL_BUTTON_SIZE:int = 20;
+			
+			private function OnCreateComplete():void
+			{
+				
+			}
+			
+			public function updateSelectedDish(dish:DishDetail):void
+			{
+				if (_combineWith.getItemIndex(dish) == -1)
+				{
+					_combineWith.addItem(dish);
+				}
+				_combineWith.refresh();
+			}
+			
+			private function OnAddClick():void
+			{
+				var c:CreateSimpleSearchViewCommand = new CreateSimpleSearchViewCommand;
+				c.target = this;
+				c.listenerFn = OnSimpleSearchResult;
+				_controller.handleCommand(CreateSimpleSearchViewCommand.NAME, c);
+			}
+			
+			private function OnSimpleSearchResult(e:DishPickEvent):void
+			{
+				if (e.result != null && _combineWith.getItemIndex(e.result) == -1)
+				{
+					_combineWith.addItem(e.result);
+				}
+				_combineWith.refresh();
+			}
+			
+			private function OnRemoveClick():void
+			{
+				if (combineDish.selectedItem != null)
+				{
+					_combineWith.removeItemAt(_combineWith.getItemIndex(combineDish.selectedItem));
+					_combineWith.refresh();
+				}
+			}
+			
+			private function OnSearch():void
+			{
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox id="mainFrame" x="{GAP}" y="{GAP}" width="{this.width -  2 * GAP}" height="{this.height -  2 * GAP}"
+		verticalGap="0">
+		
+		<mx:HBox id="infoPanel" width="100%" height="{mainFrame.height - btnPanel.height - hs.height}" horizontalGap="0">
+			<mx:Form id="form" width="170" verticalGap="5">
+				<mx:FormHeading label="基本信息"/>
+				<mx:FormItem label="冷盘数" width="100%">
+					<mx:NumericStepper id="coldFoodNumber" minimum="0" maximum="20" stepSize="1"/>
+				</mx:FormItem>
+				<mx:FormItem label="热菜数" width="100%">
+					<mx:NumericStepper id="hotFoodNumber" minimum="0" maximum="50" stepSize="1"/>
+				</mx:FormItem>
+				<mx:FormItem label="汤数" width="100%">
+					<mx:NumericStepper id="soupNumber" minimum="0" maximum="20" stepSize="1"/>
+				</mx:FormItem>
+				<mx:FormItem label="点心数" width="100%">
+					<mx:NumericStepper id="noshNumber" minimum="0" maximum="20" stepSize="1"/>
+				</mx:FormItem>
+				<mx:FormItem label="" width="100%">
+					<mx:CheckBox id="canHot" label="可配辣菜" selected="true"/>
+				</mx:FormItem>
+			</mx:Form>
+			
+			<mx:Canvas id="combineDishPanel" width="{infoPanel.width - form.width}" height="100%">
+				<mx:DataGrid id="combineDish" x="0" y="0"
+					width="{combineDishPanel.width - SMALL_BUTTON_SIZE * 1.5}" height="100%"
+					dataProvider="{_combineWith}">
+					<mx:columns>
+						<mx:DataGridColumn headerText="菜名" dataField="name"/>
+						<mx:DataGridColumn headerText="类别" dataField="category"/>
+						<mx:DataGridColumn headerText="种类" dataField="dishType"/>
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:Button id="btn_add" label=""
+					x="{combineDishPanel.width - SMALL_BUTTON_SIZE}" y="{(combineDishPanel.height - 2 * SMALL_BUTTON_SIZE) / 3}"
+					width="{SMALL_BUTTON_SIZE}" height="{SMALL_BUTTON_SIZE}" click="OnAddClick()">
+					<mx:icon>@Embed(source='../../../../../../assets/btn_add.png')</mx:icon>
+				</mx:Button>
+				<mx:Button id="btn_remove" label=""
+					x="{btn_add.x}" y="{btn_add.y + btn_add.height + (combineDishPanel.height - 2 * SMALL_BUTTON_SIZE) / 3}"
+					width="{SMALL_BUTTON_SIZE}" height="{SMALL_BUTTON_SIZE}" click="OnRemoveClick()">
+					<mx:icon>@Embed(source='../../../../../../assets/btn_remove.png')</mx:icon>
+				</mx:Button>
+			</mx:Canvas>
+		</mx:HBox>
+		
+		<mx:Spacer id="hs" height="{GAP * 2}"/>
+		
+		<mx:HBox id="btnPanel" width="100%" horizontalAlign="right">
+			<mx:Button id="btn_search" label="生成菜单" click="OnSearch()"/>
+		</mx:HBox>
+		
+	</mx:VBox>
+	
+</mx:Canvas>

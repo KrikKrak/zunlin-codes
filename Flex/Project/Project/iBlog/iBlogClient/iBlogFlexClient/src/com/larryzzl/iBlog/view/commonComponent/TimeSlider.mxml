@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalAlign="center" verticalAlign="middle"
+	verticalGap="0"
+	creationComplete="OnCreated()">
+	
+	<mx:Script>
+		<![CDATA[
+			import caurina.transitions.Tweener;
+			import mx.collections.ArrayCollection;
+			import mx.events.SliderEvent;
+		
+			public static const E_SLIDE_DRAG_END:String = "E_SLIDE_DRAG_END";
+			
+			public var _dateIndexMap:ArrayCollection;
+			[Bindable]
+			private var _curIndexDate:String;
+			private var _timer:Timer;
+			
+			private function OnCreated():void
+			{
+				_timer = new Timer(2000);
+				_timer.addEventListener(TimerEvent.TIMER, OnTimer, false, 0, true);
+			}
+			
+			public function setSliderProp(dateIndexMap:ArrayCollection,
+											minValue:Number,
+											maxValue:Number,
+											intervalValue:Number = 1):void
+			{
+				_dateIndexMap = dateIndexMap;
+				slider.maximum = maxValue;
+				slider.minimum = minValue;
+				slider.snapInterval = intervalValue;
+				
+				slider.value = slider.minimum;
+			}
+			
+			public function get sliderValue():Number
+			{
+				return slider.value;
+			}
+			
+			public function OnValueChange(e:SliderEvent):void
+			{
+				if (_dateIndexMap != null)
+				{
+					for each (var o:Object in _dateIndexMap)
+					{
+						if (o.slideIndex == slider.value)
+						{
+							_curIndexDate = (o.date as Date).toDateString();
+							
+							// check if the hidding timer is running
+							if (_timer.running == true)
+							{
+								_timer.stop();
+							}
+							
+							// check if the pre tweener is running
+							if (Tweener.isTweening(datePanel) == true)
+							{
+								Tweener.pauseTweens(datePanel);
+							}
+							Tweener.addTween(datePanel, {alpha: 1, time: (1 - datePanel.alpha)});
+						}
+					}
+				}
+			}
+			
+			private function OnTimer(e:TimerEvent):void
+			{
+				_timer.stop();
+				// hide the label of date
+				Tweener.addTween(datePanel, {alpha: 0, time: 1});
+			}
+
+			private function OnThumbRelease(e:SliderEvent):void
+			{
+				dispatchEvent(new Event(E_SLIDE_DRAG_END));
+				
+				// now the label of date is shown up, setup a timer to hide it
+				_timer.reset();
+				_timer.start();
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="datePanel" alpha="0"
+		cornerRadius="5" backgroundColor="#808080"
+		borderStyle="solid" borderColor="#808080">
+		
+		<mx:Label text="{_curIndexDate}" color="0xFFFFFF" fontSize="10"/>
+	</mx:Canvas>
+	
+	<mx:HSlider id="slider" width="100%" minWidth="200" maxWidth="700"
+		minimum="0" maximum="100" value="50" snapInterval="1" liveDragging="true" showDataTip="false"
+		change="OnValueChange(event)"
+		thumbRelease="OnThumbRelease(event)"/>
+	
+</mx:VBox>

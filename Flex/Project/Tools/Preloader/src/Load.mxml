@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" preloader="Pre" 
+	backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#333333, #333333]">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			[Embed(source="Coltrane.mp3")]
+			private var music:Class;
+			
+		]]>
+	</mx:Script>
+	
+</mx:Application>

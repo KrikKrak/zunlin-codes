@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DragPanel xmlns="PEUIComponent.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	x="150" y="150" width="222" height="160" borderStyle="outset" backgroundColor="#FFFFFF"
+	>
+	
+	<mx:Metadata>
+		[Event(name = "closePanel", type = "flash.events.Event")]
+	</mx:Metadata>
+
+	<mx:Script>
+		<![CDATA[
+			import ASCode.ActionManager;
+			import ASCode.PhotoAdjust.ColorAdjAlg;
+			
+			private static var inst:ColorAdjPanel = null;
+			private var slideClick:Boolean = false;
+			private var peAlgorithm:ColorAdjAlg = null;
+		
+			public static function GetColorAdjPanel():ColorAdjPanel
+			{
+				if (inst == null)
+				{
+					inst = new ColorAdjPanel;
+				}
+				inst.CreateAlgorithm();
+				return inst;
+			}
+			
+			public function SetBitmap(data:Bitmap):void
+			{
+				peAlgorithm.data = data;
+			}
+			
+			private function CreateAlgorithm():void
+			{
+				peAlgorithm = new ColorAdjAlg;
+			}
+			
+			private function OnSatPress():void
+			{
+				slideClick = true;
+			}
+			
+			private function OnSatChange():void
+			{
+				peAlgorithm.Test(hs_Saturation.value, hs_Hue.value);
+			}
+			
+			private function OnSatRelease():void
+			{
+				slideClick = false;
+			}
+			
+			private function OnHuePress():void
+			{
+				slideClick = true;
+			}
+			
+			private function OnHueChange():void
+			{
+				peAlgorithm.Test(hs_Saturation.value, hs_Hue.value);
+			}
+			
+			private function OnHueRelease():void
+			{
+				slideClick = false;
+			}
+			
+			override public function CanDrag(mx:Number, my:Number):Boolean
+			{
+				return !slideClick;
+			}
+			
+			private function OnClose():void
+			{
+				peAlgorithm.Execute();
+				EndAlgorithm();
+				dispatchEvent(new Event("closePanel"));
+			}
+			
+			private function EndAlgorithm():void
+			{
+				hs_Saturation.value = 0;
+				hs_Hue.value = 0;
+				peAlgorithm = null;
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="titlePanel" x="0" y="0" width="218" height="33" backgroundColor="#646464" borderStyle="solid">
+		<mx:Label x="10" y="6" text="Color" color="#FF0000" fontSize="12"/>
+		<mx:Button x="195" y="11" label="Close" width="15" height="11" click="OnClose()"/>
+	</mx:Canvas>
+	
+	<mx:VBox id="controlPanel" x="0" y="41" width="218" height="115" backgroundColor="#FFFFFF">
+		<mx:Label text="Saturation:" width="100%"/>
+		<mx:HSlider id="hs_Saturation" width="100%" minimum="-50" maximum="50" dataTipPrecision="0" dataTipOffset="1" snapInterval="1"
+			value="0" allowTrackClick="false" liveDragging="true"
+			thumbPress="OnSatPress()" thumbRelease="OnSatRelease()" change="OnSatChange()"/>
+		<mx:Label text="Hue:" width="100%"/>
+		<mx:HSlider id="hs_Hue" width="100%" minimum="-50" maximum="50" dataTipPrecision="0" dataTipOffset="1" snapInterval="1"
+			value="0" allowTrackClick="false" liveDragging="true"
+			thumbPress="OnHuePress()" thumbRelease="OnHueRelease()" change="OnHueChange()"/>
+	</mx:VBox>	
+	
+</DragPanel>

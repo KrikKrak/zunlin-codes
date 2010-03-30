@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditFunctionPanel xmlns="com.Roxio.PhotoStar.UI.Left.EditComponent.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IStyleChangeObject">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Mode.GlobeSetting;
+			import mx.core.UIComponent;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.IOverAdjustPanel;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.StraightenPanel;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.CropAreaPanel;
+			import com.Roxio.OnlineObject.DebugTool.TraceTool;
+			
+			[Bindable]
+			private var _cropController:CropAreaPanel;
+			[Bindable]
+			private var _straightenController:StraightenPanel;
+			
+			private var _currentController:IOverAdjustPanel;
+		
+			public function updateStyle():void
+			{
+				this.setStyle("backgroundImage", resourceManager.getClass("AppPic", "TransformBg"));
+			}
+			
+			override public function ready2Close():void
+			{
+				TraceTool.Trace("TransformPanel -- ready2Close");
+				
+				if (_currentController != null)
+				{
+					if (GlobeSetting.done4Close == true)
+					{
+						_currentController.done();
+					}
+					else
+					{
+						_currentController.cancel();
+					}
+					
+					MainUIController.removeAdjustAreaPanel(_currentController as UIComponent);
+					_cropController = null;
+					_straightenController = null;
+					btn_straighten.enabled = true;
+					btn_crop.enabled = true;
+					_currentController = null;
+				}
+			}
+			
+			private function OnStraightenClick():void
+			{
+				var size:Point = MainUIController.imageHolderSize;
+				if (size == null)
+				{
+					TraceTool.TraceError("TransformPanel -- OnStraightenClick -- ImageHolder size null!");
+				}
+				else
+				{
+					_straightenController = StraightenPanel.inst();
+					MainUIController.addAdjustAreaPanel(_straightenController);
+					_straightenController.straightenData = MainUIController.imageHolder;
+					
+					_currentController = _straightenController as IOverAdjustPanel;
+					btn_crop.enabled = false;
+				}
+			}
+			
+			private function OnStraightenDone(done:Boolean):void
+			{
+				if (done == true)
+				{
+					_straightenController.done();
+				}
+				else
+				{
+					_straightenController.cancel();
+				}
+				MainUIController.removeAdjustAreaPanel(_straightenController);
+				_straightenController = null;
+				
+				_currentController = null;
+				btn_crop.enabled = true;
+			}
+			
+			private function OnCropClick():void
+			{
+				var size:Point = MainUIController.imageHolderSize;
+				if (size == null)
+				{
+					TraceTool.TraceError("TransformPanel -- OnCropClick -- ImageHolder size null!");
+				}
+				else
+				{
+					_cropController = CropAreaPanel.inst();
+					MainUIController.addAdjustAreaPanel(_cropController);
+					_cropController.setInitWH(size.x, size.y);
+					_cropController.cropData = MainUIController.imageHolder;
+					
+					_currentController = _cropController as IOverAdjustPanel;
+					btn_straighten.enabled = false;
+				}
+			}
+			
+			private function OnCropDone(done:Boolean):void
+			{
+				if (done == true)
+				{
+					_cropController.done();
+				}
+				MainUIController.removeAdjustAreaPanel(_cropController);
+				_cropController = null;
+				
+				_currentController = null;
+				btn_straighten.enabled = true;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Button id="btn_straighten" x="24" y="50" width="99"
+		label="{resourceManager.getString('AppString', 'TP_Straighten')}"
+		enabled="{_straightenController == null}"
+		click="OnStraightenClick()"/>
+	<mx:Button x="24" y="80" label="Y" width="37" enabled="{_straightenController != null}"
+		click="OnStraightenDone(true)"/>
+	<mx:Button x="88" y="80" label="N" width="35" enabled="{_straightenController != null}"
+		click="OnStraightenDone(false)"/>
+	
+	<mx:Button id="btn_crop" x="153" y="50" width="99"
+		label="{resourceManager.getString('AppString', 'TP_Crop')}"
+		enabled="{_cropController == null}"
+		click="OnCropClick()"/>
+	<mx:Button x="153" y="80" label="Y" width="37" enabled="{_cropController != null}"
+		click="OnCropDone(true)"/>
+	<mx:Button x="217" y="80" label="N" width="35" enabled="{_cropController != null}"
+		click="OnCropDone(false)"/>
+	
+</EditFunctionPanel>

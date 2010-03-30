@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:OnlineObject="com.Roxio.OnlineObject.*">
+
+	<mx:Style>
+		@font-face
+		{
+			src: url("assets/843-CAI978.ttf");
+			fontFamily: psLoginFont;
+			advancedAntiAliasing: true;
+		}
+	</mx:Style>
+
+	<mx:Label x="10" y="19" text="{resourceManager.getString('AppString', 'LP_ID')}"
+		fontFamily="psLoginFont" color="#FFFFFF"/>
+	<mx:Label x="141" y="19" text="{resourceManager.getString('AppString', 'LP_Pass')}"
+		fontFamily="psLoginFont" color="#FFFFFF"/>
+		
+	<!--Text input background image-->
+	<mx:Image source="{resourceManager.getClass('AppPic', 'TextInputBg')}"
+		x="{email.x}" y="{email.y}" width="{email.width}" height="{email.height}"/>
+	<mx:Image source="{resourceManager.getClass('AppPic', 'TextInputBg')}"
+		x="{password.x}" y="{password.y}" width="{password.width}" height="{password.height}"/>
+		
+	<OnlineObject:TransparentTextInput id="email" x="30" y="19" width="96" height="18"
+		fontFamily="psLoginFont" color="0xFFFFFF"/>
+	<OnlineObject:TransparentTextInput id="password" x="217" y="22" width="96" height="16"
+		fontFamily="psLoginFont" color="0xFFFFFF"
+		displayAsPassword="true"/>
+
+	<OnlineObject:TransLinkBtn x="3" y="47" width="60" height="20"  textAlign="center"
+		label="{resourceManager.getString('AppString', 'LP_Login')}" fontFamily="Verdana"/>
+	<OnlineObject:TransLinkBtn x="75" y="47" width="80" height="20"  textAlign="center"
+		label="{resourceManager.getString('AppString', 'LP_Register')}" fontFamily="Verdana"/>
+	
+</mx:Canvas>

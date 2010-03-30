@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"
+	layout="absolute"
+	
+	backgroundColor="0x000000"
+	creationComplete="OnCreationComplete()">
+
+	<mx:Script>
+		<![CDATA[
+		//backgroundColor="0x505050"
+			import mx.core.UIComponent;
+			import mx.effects.Move;
+			import mx.controls.Label;
+			import mx.collections.ArrayCollection;
+			import flash.display.GradientType;
+			import flash.display.BitmapDataChannel;
+			
+			import caurina.transitions.Tweener;
+		
+			private var _planes:ArrayCollection;
+			private var _isLoaded:Boolean = false;
+			
+			private var _centerX:int = 0;
+			private var _centerY:int = 0;
+			
+			private const PLANE_WIDTH:int = 300;
+			private const PLANE_HEIGHT:int = 300;
+			
+			private var _ca:Canvas;
+
+			private function OnCreationComplete():void
+			{
+				_isLoaded = true;
+				InitPlane();
+				CreateSpotlight();
+			}
+			
+			private function CreateSpotlight():void
+			{
+				var w:int = this.width;
+				var h:int = this.height;
+				var circleDim:int = Math.max(w, h);
+				var sl:Sprite = new Sprite;
+				
+				var fillType:String = GradientType.RADIAL;
+				var colors:Array = [0xFF000000, 0xFF300000];
+				var alphas:Array = [1, 1];
+				var ratios:Array = [50, 255];
+				var matrix:Matrix = new Matrix;
+				matrix.createGradientBox(circleDim, circleDim, 0, 0, 0);
+				
+				sl.graphics.beginGradientFill(fillType, colors, alphas, ratios, matrix);
+				sl.graphics.moveTo(0, 0);
+				sl.graphics.lineTo(0, circleDim);
+				sl.graphics.lineTo(circleDim, circleDim);
+				sl.graphics.lineTo(circleDim, 0);
+				sl.graphics.lineTo(0, 0);
+				sl.graphics.endFill();
+				
+				var alphaBmp:BitmapData = new BitmapData(w, h, true, colors[1]);
+				matrix = new Matrix;
+				matrix.translate((w - circleDim) / 2, (h - circleDim) / 2);
+				alphaBmp.draw(sl, matrix);
+				var filter:BlurFilter = new BlurFilter(32, 32, 3);
+				alphaBmp.applyFilter(alphaBmp, alphaBmp.rect, new Point(0, 0), filter);
+				
+				var maskBmp:BitmapData = new BitmapData(w, h, true, 0xFF000000);
+				maskBmp.copyChannel(alphaBmp, alphaBmp.rect, new Point(0, 0), BitmapDataChannel.RED, BitmapDataChannel.ALPHA);
+
+				var bp:Bitmap = new Bitmap(maskBmp);
+				this.rawChildren.addChild(bp);
+			}
+			
+			private function OnMouseMove(event:MouseEvent):void
+			{
+				var p:PerspectiveProjection = mainFrame.transform.perspectiveProjection;
+				var pc:Point = new Point(mainFrame.mouseX, mainFrame.mouseY);
+				p.projectionCenter = pc;
+				mainFrame.transform.perspectiveProjection = p;
+			}
+			
+			private function InitPlane():void
+			{
+				RemovePlanes();
+				
+				_centerX = mainFrame.width / 2;
+				_centerY = mainFrame.height / 2;
+				
+				var p:PerspectiveProjection = new PerspectiveProjection;
+				var pc:Point = new Point(_centerX, _centerY);
+				p.projectionCenter = pc;
+				p.fieldOfView = 45;
+				mainFrame.transform.perspectiveProjection = p;
+				
+				if (_planes == null)
+				{
+					_planes = new ArrayCollection;
+				}
+				
+				for (var i:int = 0; i < 10; ++i)
+				{
+					var ca:Canvas = new Canvas;
+					ca.width = PLANE_WIDTH;
+					ca.height = PLANE_HEIGHT;
+					ca.setStyle("backgroundColor", Math.random() * 0xFFFFFF);
+					ca.x = Math.random() * 1000 - 200 + _centerX;
+					ca.y = Math.random() * 1000 - 200 + _centerY;
+					ca.z = i * 200;
+					ca.alpha = 0.5;
+					ca.addEventListener(MouseEvent.CLICK, OnMouseClick);
+					
+					var t:Label = new Label;
+					t.text = "x: " + int(ca.x) + " y: " + int(ca.y) + " z: " + int(ca.z);
+					t.setStyle("fontSize", 20);
+					ca.addChild(t);
+
+					mainFrame.addChild(ca);
+					_planes.addItem(ca);
+				}
+			}
+			
+			private function RemovePlanes():void
+			{
+				if (_planes != null)
+				{
+					_planes.removeAll();
+					mainFrame.removeAllChildren();
+				}
+			}
+			
+			private function OnMouseClick(event:MouseEvent):void
+			{
+				var ca:Canvas = event.target as Canvas;
+				var adj_z:int = -ca.z;
+				var adj_x:int = _centerX - ca.x - PLANE_WIDTH / 2;
+				var adj_y:int = _centerY - ca.y - PLANE_HEIGHT / 2;
+
+				for (var i:int = 0; i < _planes.length; ++i)
+				{
+					var oc:Canvas = _planes[i] as Canvas;
+					//oc.z += adj_z;
+					//oc.x += adj_x;
+					//oc.y += adj_y;
+					
+					Tweener.addTween(oc, {x: oc.x + adj_x, y: oc.y + adj_y, z: oc.z + adj_z,
+														time: 1, transition: "easeOutCubic",
+														onUpdate: OnMoveUpdate});
+				}
+			}
+			
+			private function OnMoveUpdate():void
+			{
+				for (var i:int = 0; i < _planes.length; ++i)
+				{
+					var ca:Canvas = _planes[i] as Canvas;
+					var l:Label = ca.getChildAt(0) as Label;
+					if (l != null)
+					{
+						l.text = "x: " + int(ca.x) + " y: " + int(ca.y) + " z: " + int(ca.z);
+					}
+				}
+			}
+			
+			/*
+			private function OnH1Change():void
+			{
+				tFrame.rotationX = h1.value;// * 180 / Math.PI;
+			}
+			
+			private function OnH2Change():void
+			{
+				tFrame.rotationY = h2.value;// * 180 / Math.PI;
+			}
+			
+			private function OnH3Change():void
+			{
+				tFrame.rotationZ = h3.value;// * 180 / Math.PI;
+			}
+			*/
+
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="mainFrame" x="{this.width * 0.00}" y="{this.height * 0.00}" width="100%" height="100%"
+		verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	
+		<!--
+		<mx:Canvas id="tFrame" x="214" y="202" width="200" height="200" backgroundColor="#FF0000">
+		</mx:Canvas>
+		<mx:HSlider x="46" y="496" id="h1" allowTrackClick="false" minimum="0" maximum="180" snapInterval="1" liveDragging="true" change="OnH1Change()"/>
+		<mx:HSlider x="46" y="522" id="h2" allowTrackClick="false" minimum="0" maximum="180" snapInterval="1" liveDragging="true" change="OnH2Change()"/>
+		<mx:HSlider x="46" y="548" id="h3" allowTrackClick="false" minimum="0" maximum="180" snapInterval="1" liveDragging="true" change="OnH3Change()"/>
+		-->
+		
+	</mx:Canvas>
+
+</mx:Application>

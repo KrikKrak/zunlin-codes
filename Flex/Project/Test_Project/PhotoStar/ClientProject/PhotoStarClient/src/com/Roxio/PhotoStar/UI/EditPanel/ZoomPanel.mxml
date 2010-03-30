@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	backgroundAlpha="0.8"
+	backgroundImage="@Resource(key='ZoomPanelBackground', bundle='AppPic')">
+	
+	<mx:Script>
+		<![CDATA[
+		
+			[Bindable]
+			private var _zoomValue:Number = 0;
+			
+			private var _callBackFn:Function;
+			
+			public function set zoomValue(val:Number):void
+			{
+				_zoomValue = val;
+			}
+			
+			public function initZoom(min:Number, max:Number, cur:Number, changeCallBack:Function):void
+			{
+				hs_Zoom.minimum = min;
+				hs_Zoom.maximum = max;
+				hs_Zoom.value = cur;
+				_zoomValue = cur;
+				
+				_callBackFn = changeCallBack;
+			}
+			
+			private function OnZoomChange():void
+			{
+				_zoomValue = hs_Zoom.value;
+				_callBackFn(hs_Zoom.value);
+			}
+		]]>
+	</mx:Script>
+	
+	
+	<mx:Label text="{resourceManager.getString('AppString', 'ZP_Title')}"
+		x="9" y="4" width="85" color="#FFFFFF" fontWeight="bold" fontSize="12"/>
+
+	<mx:HSlider id="hs_Zoom" x="10" y="30" width="153"
+		minimum="1" maximum="300" snapInterval="0.1" liveDragging="true"
+		dataTipPrecision="0" dataTipOffset="1" showDataTip="false"
+		change="OnZoomChange()"/>
+
+	<mx:Label text="{int(_zoomValue)}%"
+		 x="171" y="30" width="44" textAlign="right" color="#FFFFFF"/>
+	
+</mx:Canvas>

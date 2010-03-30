@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="212" height="62">
+
+	<mx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var dishName:String = "";
+			[Bindable]
+			public var dishLevel:int = 1;
+			[Bindable]
+			public var dishCount:int = 1;
+			
+		]]>
+	</mx:Script>
+
+	<mx:Label x="10" y="10" text="菜名："/>
+	<mx:Label x="44" y="10" text="{dishName}" width="159" textAlign="right" fontWeight="bold"/>
+	<mx:Label x="10" y="30" text="等级："/>
+	<mx:Label x="53" y="30" text="{dishLevel}" width="37"/>
+	<mx:Label x="98" y="30" text="使用次数："/>
+	<mx:Label x="165" y="30" text="{dishCount}" textAlign="right" width="38"/>
+	
+</mx:Canvas>

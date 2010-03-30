@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.familymenu.view.*"
+	layout="absolute"
+	minWidth="800" minHeight="500"
+	maxWidth="800" maxHeight="500"
+	width="800" height="500"
+	showStatusBar="false"
+	initialize="OnAppInitialize()"
+	creationComplete="OnAppCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.charts.chartClasses.ChartsLicenseHandler;
+			
+			import com.zzl.flex.familymenu.controller.MainController;
+			import com.zzl.flex.familymenu.model.GlobeModelLocator;
+			import com.roxio.online.flexLogger.controller.LogManager;
+			
+			private function OnAppInitialize():void
+			{
+				// register main application
+				GlobeModelLocator.inst.mainApplication = this;
+			}
+			
+			private function OnAppCreationComplete():void
+			{
+				// init components
+				MainController.inst.initController();
+				
+				mainFrame.visible = false;
+				MainController.inst.getDishs();
+				mainFrame.visible = true;
+				
+				// test function
+				//MainController.inst.createFakeData(200);
+			}
+			
+			private function ShowLoggerWnd():void
+			{
+				LogManager.inst.showLog();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="yflexskin.css"/>
+	
+	<view:MainFrame id="mainFrame" x="0" y="0" width="100%" height="100%"/>
+	
+	<!-- test area -->
+
+	<!--
+	<view:ColumnChartView width="100%" height="100%"/>
+	-->
+	
+	<!-- This is a blank label used for action as a button troggle a logger window -->
+	<mx:Label id="fakeButton" left="0" bottom="0" text="  " doubleClickEnabled="true" doubleClick="ShowLoggerWnd()"/>
+
+</mx:WindowedApplication>

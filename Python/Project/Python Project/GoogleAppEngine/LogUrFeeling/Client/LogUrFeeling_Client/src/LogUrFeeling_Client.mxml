@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.LogUrFeeling.view.*"
+	layout="absolute"
+	backgroundColor="0x333333"
+	preloader="com.zzl.flex.LogUrFeeling.preLoading.FlashPreLoadingBar"
+	creationComplete="OnAppInit()" >
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.LogUrFeeling.Model.MainModelLocator;
+
+			private function OnAppInit():void
+			{
+				ParseFlashVar();
+				MainModelLocator.inst.applicationContainer = mainContainer;
+				MainModelLocator.inst.mainFrame = mainFrame;
+				mainFrame.applicationLoaded();
+			}
+			
+			private function ParseFlashVar():void
+			{
+				MainModelLocator.inst.initInputParam(Application.application.parameters);
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="mainContainer" width="100%" height="100%">
+		<view:MainViewFrame id="mainFrame"/>
+	</mx:Canvas>
+	
+</mx:Application>

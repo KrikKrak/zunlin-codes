@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	verticalScrollPolicy="auto"
+	backgroundColor="0xff8000" backgroundAlpha="0"
+	creationComplete="OnCreated()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import com.larryzzl.iBlog.model.MainModelLocator;
+			import com.larryzzl.iBlog.event.ArticleEvent;
+			import mx.collections.ArrayCollection;
+			
+			public static const E_ALL_PANELS_ARE_CREATED:String = "E_ALL_PANELS_ARE_CREATED";
+			
+			private const PANEL_GAP:int = 15;
+			
+			[Bindable]
+			public var authorMode:Boolean = true;
+			
+			private var _panelNumber:int = 0;
+
+			private function OnCreated():void
+			{
+			}
+			
+			public function addArticlePanels(p:ArrayCollection, w:Number, h:Number):ArrayCollection
+			{
+				// reset panel
+				this.removeAllChildren();
+				this.verticalScrollPosition = 0;
+				
+				// calc panels position
+				var points:ArrayCollection = new ArrayCollection;
+				var cx:Number = (this.width - w) * 0.5;
+				var yOffset:Number = contentToLocal(new Point(0, 0)).y;
+				for (var i:int = 0; i < p.length; ++i)
+				{
+					points.addItem(contentToGlobal(new Point(cx, i * (PANEL_GAP + h) - yOffset)));
+				}
+
+				// add new panels
+				_panelNumber = points.length;
+				for (i = 0; i < points.length; ++i)
+				{
+					var articleView:ArticleView = new ArticleView;
+					articleView.importDataFromAnotherArticleView(p[i] as ArticleView);
+					articleView.x = globalToContent(points[i]).x;
+					articleView.y = globalToContent(points[i]).y + yOffset;
+					articleView.width = w;
+					articleView.height = h;
+					articleView.canBeEdit = authorMode;
+					articleView.addEventListener(ArticleView.E_ARTICLE_EDIT_END, OnArticleEditEnd, false, 0, true);
+					articleView.addEventListener(FlexEvent.CREATION_COMPLETE, OnPanelCreated, false, 0, true);
+					this.addChild(articleView);
+				}
+				
+				return points;
+			}
+			
+			private function OnPanelCreated(e:FlexEvent):void
+			{
+				--_panelNumber;
+				if (_panelNumber == 0)
+				{
+					dispatchEvent(new Event(E_ALL_PANELS_ARE_CREATED));
+				}
+			}
+			
+			public function getCurrentArticlePlanesPosition():ArrayCollection
+			{
+				var a:ArrayCollection = new ArrayCollection;
+				var c:Array = this.getChildren();
+				for (var i:int = 0; i < this.numChildren; ++i)
+				{
+					a.addItem(contentToGlobal(new Point(c[i].x, c[i].y)));
+				}
+				return a;
+			}
+			
+			private function OnArticleEditEnd(e:Event):void
+			{
+				var aw:ArticleView = e.target as ArticleView;
+				if (aw != null)
+				{
+					var e1:ArticleEvent = new ArticleEvent(ArticleEvent.UPDATE_ARTICLE_CONTENT);
+					e1.articleId = aw.articleId;
+					e1.articleTitle = aw.articleTitle;
+					e1.articleBody = aw.articleBody;
+					dispatchEvent(e1);
+				}
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

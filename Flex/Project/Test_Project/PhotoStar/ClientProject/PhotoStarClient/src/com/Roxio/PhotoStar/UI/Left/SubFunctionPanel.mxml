@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="auto" horizontalScrollPolicy="off"
+	>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Mode.IStyleChangeObject;
+			import mx.effects.Move;
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import mx.effects.Effect;
+			import mx.effects.IEffect;
+			import mx.effects.Parallel;
+			import mx.effects.Zoom;
+			import mx.events.EffectEvent;
+			import mx.effects.Fade;
+			import mx.effects.easing.Back;
+			
+			protected const SUB_PANEL_SHOW_DELAY:int = 120;
+		
+			protected var _loadCallBackFn:Function;
+			protected var _hideCallBackFn:Function;
+			protected var _subPanelArray:ArrayCollection;
+			protected var _localeDependPanelArray:ArrayCollection
+			
+			private var _oriPos:Point = new Point(0, 0);
+			
+			public function updateComponentStyle():void
+			{
+				for (var i:int = 0; i < _localeDependPanelArray.length; ++i)
+				{
+					(_localeDependPanelArray[i] as IStyleChangeObject).updateStyle();
+				}
+			}
+		
+			public function startLoad(loadEndCallBackFn:Function):Boolean
+			{
+				_loadCallBackFn = loadEndCallBackFn;
+				
+				this.visible = true;
+				
+				var fade:Fade = new Fade;
+				fade.addEventListener(EffectEvent.EFFECT_END, OnBackgroundLoadEnd, false, 0, true);
+				fade.target = this;
+				fade.alphaFrom = 0;
+				fade.alphaTo = 1;
+				fade.duration = 100;
+				fade.play();
+				
+				return true;
+			}
+			
+			public function ready2Close():void
+			{
+				OnClosePanel();
+			}
+			
+			public function startHide(hideEndCallBackFn:Function):Boolean
+			{
+				_hideCallBackFn = hideEndCallBackFn;
+				
+				_oriPos.x = this.x;
+				_oriPos.y = this.y;
+				
+				var para:Parallel = new Parallel;
+				para.addEventListener(EffectEvent.EFFECT_END, OnAllHide, false, 0, true);
+				
+				var move:Move = new Move;
+				move.target = this;
+				move.xTo = -this.width + 10;
+				move.duration = 500;
+				para.addChild(move);
+				
+				var fade:Fade = new Fade;
+				fade.target = this;
+				fade.alphaTo = 0;
+				fade.duration = move.duration;
+				para.addChild(fade);
+				
+				para.play();
+				return true;
+			}
+			
+			private function OnAllHide(event:EffectEvent):void
+			{
+				this.visible = false;
+				this.x = _oriPos.x;
+				this.y = _oriPos.y;
+				this.alpha = 1;
+				
+				for (var i:int = 0; i < _subPanelArray.length; ++i)
+				{
+					(_subPanelArray[i] as UIComponent).visible = false;
+				}
+				
+				_hideCallBackFn();
+			}
+			
+			private function OnBackgroundLoadEnd(event:EffectEvent):void
+			{
+				LoadFunctionPanel();
+			}
+			
+			private function LoadFunctionPanel():void
+			{
+				if (_subPanelArray == null)
+				{
+					InitSubPanelArray();
+				}
+				
+				var para:Parallel = new Parallel;
+				para.addEventListener(EffectEvent.EFFECT_END, LoadFunctionPanelEnd, false, 0, true);
+				
+				for (var i:int = 0; i < _subPanelArray.length; ++i)
+				{
+					(_subPanelArray[i] as UIComponent).visible = false;
+					para.addChild(CreateFadeInEffect((_subPanelArray[i] as UIComponent), i * SUB_PANEL_SHOW_DELAY));
+				}
+				
+				para.play();
+			}
+			
+			private function LoadFunctionPanelEnd(event:EffectEvent):void
+			{
+				_loadCallBackFn();
+			}
+			
+			private function CreateFadeInEffect(obj:UIComponent, delay:Number = 0, duration:Number = 1000):IEffect
+			{
+				var fade:Fade = new Fade;
+				fade.addEventListener(EffectEvent.EFFECT_START, OnEffectStart, false, 0, true);
+				fade.target = obj;
+				fade.alphaFrom = 0;
+				fade.alphaTo = 1;
+				fade.duration = duration;
+				fade.startDelay = delay;
+				//fade.easingFunction = Back.easeOut;
+
+				return fade;
+			}
+			
+			private function OnEffectStart(event:EffectEvent):void
+			{
+				((event.target as Effect).target as UIComponent).visible = true;
+			}
+			
+			// override by derived class
+			protected function OnClosePanel():void
+			{
+				return;
+			}
+			
+			protected function InitSubPanelArray():void
+			{
+				return;
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="auto" horizontalScrollPolicy="off"
+	backgroundColor="0x123456">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.EffectEvent;
+			import mx.effects.Fade;
+			
+			private var _loadCallBack:Function;
+			private var _hideCallBack:Function;
+			
+			// this function should be derived by sub class
+			public function ready2Close():void
+			{
+			}
+			
+			public function startLoad(loadEndCallBackFn:Function):Boolean
+			{
+				_loadCallBack = loadEndCallBackFn;
+				
+				this.visible = true;
+				var fade:Fade = new Fade;
+				fade.addEventListener(EffectEvent.EFFECT_END, OnLoadEnd, false, 0, true);
+				fade.target = this;
+				fade.alphaFrom = 0;
+				fade.alphaTo = 1;
+				fade.duration = 500;
+				fade.play();
+				
+				return true;
+			}
+			
+			private function OnLoadEnd(event:EffectEvent):void
+			{
+				_loadCallBack();
+			}
+			
+			public function startHide(hideEndCallBackFn:Function):Boolean
+			{
+				_hideCallBack = hideEndCallBackFn;
+				
+				var fade:Fade = new Fade;
+				fade.addEventListener(EffectEvent.EFFECT_END, OnHideEnd, false, 0, true);
+				fade.target = this;
+				fade.alphaFrom = 1;
+				fade.alphaTo = 0;
+				fade.duration = 500;
+				fade.play();
+				
+				return true;
+			}
+			
+			private function OnHideEnd(event:EffectEvent):void
+			{
+				this.visible = false;
+				_hideCallBack();
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

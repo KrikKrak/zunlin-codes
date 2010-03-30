@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:view="com.zzl.flex.photoGallery.view.*"
+	layout="absolute"
+	minWidth="800" minHeight="500"
+	creationComplete="OnAppComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.zzl.flex.photoGallery.model.GlobeModelLocator;
+			
+			private function OnAppComplete():void
+			{
+				GlobeModelLocator.inst.mainApplication = this;
+				GlobeModelLocator.inst.mainView = mainView;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="yflexskin.css"/>
+
+	<view:MainView id="mainView" width="100%" height="100%"/>
+
+</mx:WindowedApplication>

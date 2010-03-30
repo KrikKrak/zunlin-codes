@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:viewStage="com.zzl.flex.photoGallery.view.viewStage.*"
+	width="100%" height="100%"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	creationComplete="OnViewCreationComplete()"
+	resize="OnAppResize()" xmlns:view="com.zzl.flex.photoGallery.view.*">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.controls.Alert;
+			
+			import com.zzl.flex.photoGallery.controller.MainController;
+			import com.zzl.flex.photoGallery.model.GlobeModelLocator;
+			import com.zzl.flex.photoGallery.model.DrivenMode;
+			
+			import com.zzl.flex.photoGallery.model.commands.SwitchCameraCommand;
+			import com.zzl.flex.photoGallery.model.commands.ReadDataCommand;
+			import com.zzl.flex.photoGallery.model.commands.LoadSourceManageWndCommand;
+		
+			private var _mainController:MainController = MainController.inst;
+			private var _modelLocator:GlobeModelLocator = GlobeModelLocator.inst;
+			private var _drivenMode:String = _modelLocator.drivenMode;
+			private var _projectionCenter:Point = new Point;
+			private var _cameraBitmap:Bitmap;
+			private var _lastFaceArea:Rectangle;
+			
+			private var _background:Bitmap;
+			private var _controlPanelEndX:Number;
+			
+			private const EASING_VALUE:Number = 0.2;
+			
+			private function OnViewCreationComplete():void
+			{
+				this.addEventListener(Event.ENTER_FRAME, OnEnterFrame, false, 0, true);
+				
+				_modelLocator.addEventListener(GlobeModelLocator.E_DRIVEN_MODE_UPDATE, OnDrivenModeUpdate, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_CAMERA_STATUS_UPDATE, OnSwitchCameraUpdate, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_CAMERA_CAN_BE_ACCESSED_UPDATE, OnCameraAccessUpdate, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_FACE_RECTS_UPDATE, OnFaceRectsUpdate, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_ENTIR_LOADING_PROGRESS_UPDATE, OnLoadingProgressUpdate, false, 0, true);
+				_modelLocator.addEventListener(GlobeModelLocator.E_SOURCE_LOAD_STATUS_UPDATE, OnSourceLoadUpdate, false, 0, true);
+				
+				this.addEventListener(MouseEvent.MOUSE_MOVE, OnMouseMove, false, 0, true);
+				this.addEventListener(MouseEvent.MOUSE_WHEEL, OnMouseWheel, false, 0, true);
+				
+				CreateSpotlight();
+				InitControlPanel();
+				
+				var c:ReadDataCommand = new ReadDataCommand(_modelLocator.dataSource);
+				_mainController.handleCommand(ReadDataCommand.C_READ_DATA, c);
+			}
+			
+			private function OnAppResize():void
+			{
+				CreateSpotlight();
+			}
+			
+			private function OnSourceLoadUpdate(e:Event):void
+			{
+				if (_modelLocator.sourceLoadStatus == GlobeModelLocator.SOURCE_LOADING)
+				{
+					
+				}
+				else if (_modelLocator.sourceLoadStatus == GlobeModelLocator.SOURCE_LOAD_FINISHED)
+				{
+					
+				}
+				else
+				{
+					
+				}
+			}
+			
+			private function UpdateDriven():void
+			{
+				_modelLocator.drivenMode = (face_driven.selected == true) ? DrivenMode.DRIVEN_MODE_FACE : DrivenMode.DRIVEN_MODE_MOUSE;
+				
+				var c:SwitchCameraCommand = new SwitchCameraCommand(face_driven.selected);
+				_mainController.handleCommand(SwitchCameraCommand.C_SWITCH_CAMERA, c);
+			}
+			
+			private function OnDrivenModeUpdate(e:Event):void
+			{
+				_drivenMode = _modelLocator.drivenMode;
+				face_driven.selected = (_drivenMode ==DrivenMode.DRIVEN_MODE_FACE);
+				mouse_driven.selected = !face_driven.selected;
+			}
+			
+			private function UpdateProjectionCenter(point:Point):void
+			{
+				var p:PerspectiveProjection = this.transform.perspectiveProjection;
+				p.projectionCenter = point;
+				this.transform.perspectiveProjection = p;
+			}
+			
+			private function OnEnterFrame(e:Event):void
+			{
+				// move control panel
+				if (Math.abs(controlPanel.x - _controlPanelEndX) > 0.01)
+				{
+					controlPanel.x += (_controlPanelEndX - controlPanel.x) * EASING_VALUE;
+				}
+			}
+			
+			private function OnSwitchCameraUpdate(e:Event):void
+			{
+				if (_drivenMode == DrivenMode.DRIVEN_MODE_MOUSE)
+				{
+					if (cameraWnd.visible == true)
+					{
+						cameraWnd.visible = false;
+					}
+				}
+				else
+				{
+					if (_modelLocator.showCameraWnd != cameraWnd.visible)
+					{
+						cameraWnd.visible = _modelLocator.showCameraWnd;
+					}
+				}
+			}
+			
+			private function OnCameraAccessUpdate(e:Event):void
+			{
+				if (_drivenMode == DrivenMode.DRIVEN_MODE_FACE)
+				{
+					if (_modelLocator.cameraCanBeAccessed == true)
+					{
+						if (_cameraBitmap == null)
+						{
+							_cameraBitmap = new Bitmap(_modelLocator.cameraBitmapData);
+							cameraWnd.rawChildren.addChild(_cameraBitmap);
+						}
+					}
+					else
+					{
+						Alert.show("No Camera Found!", "Error", Alert.OK);
+						// switch driven mode to MOUSE
+						mouse_driven.selected = true;
+						face_driven.selected = false;
+						UpdateDriven();
+					}
+				}
+				else
+				{
+					if (_cameraBitmap != null && cameraWnd.rawChildren.contains(_cameraBitmap))
+					{
+						cameraWnd.rawChildren.removeChild(_cameraBitmap);
+						_cameraBitmap = null;
+					}
+				}
+			}
+			
+			private function OnFaceRectsUpdate(e:Event):void
+			{
+				if (_drivenMode == DrivenMode.DRIVEN_MODE_FACE && _modelLocator.faceRects.length > 0)
+				{
+					var tRect:Rectangle = _modelLocator.faceRects[0] as Rectangle;
+					// find the largest face area
+					if (_modelLocator.faceRects.length > 1)
+					{
+						for each(var r:Rectangle in _modelLocator.faceRects)
+						{
+							if (r == tRect)
+							{
+								continue;
+							}
+							
+							if (r.width * r.height > tRect.width * tRect.height)
+							{
+								tRect == r;
+							}
+						}
+					}
+					
+					// draw face area
+					if (faceAreaWnd.visible == true)
+					{
+						faceAreaWnd.graphics.clear();
+						if (_lastFaceArea != null)
+						{
+							faceAreaWnd.graphics.lineStyle(2, 0x000000);
+							faceAreaWnd.graphics.drawRect(_lastFaceArea.x, _lastFaceArea.y, _lastFaceArea.width, _lastFaceArea.height);
+						}
+						faceAreaWnd.graphics.lineStyle(2, 0xFF8000);
+						faceAreaWnd.graphics.drawRect(tRect.x, tRect.y, tRect.width, tRect.height);
+					}
+					
+					// update zoom value
+					if (_lastFaceArea != null)
+					{
+						UpdateZoomScale((tRect.width * tRect.height) / (_lastFaceArea.width * _lastFaceArea.height));
+					}	
+								
+					// update projection center
+					var centerX:Number = (tRect.x + tRect.width / 2) / GlobeModelLocator.CAMERA_WIDTH * this.width;
+					var centerY:Number = (tRect.y + tRect.height / 2) / GlobeModelLocator.CAMERA_HEIGHT * this.height;
+					_modelLocator.projectionCenter = new Point(centerX, centerY);
+					
+					_lastFaceArea = tRect;
+				}
+			}
+			
+			private function OnMouseMove(e:MouseEvent):void
+			{
+				if (_drivenMode == DrivenMode.DRIVEN_MODE_MOUSE)
+				{
+					_modelLocator.projectionCenter = new Point(this.width - this.mouseX, this.height - this.mouseY);
+				}
+			}
+			
+			private function OnMouseWheel(e:MouseEvent):void
+			{
+				_modelLocator.projectionDistance += e.delta * 50;
+			}
+			
+			private function UpdateZoomScale(val:Number):void
+			{
+				// do not use face-detector for z scale now
+				return;
+				
+				if (val > 0 && val < 1)
+				{
+					_modelLocator.projectionDistance = (1 - val) *1000;
+				}
+				else
+				{
+					_modelLocator.projectionDistance = -val * 100;
+				}
+			}
+			
+			private function CreateSpotlight():void
+			{
+				var w:int = this.width;
+				var h:int = this.height;
+				var circleDim:int = Math.max(w, h);
+				var sl:Sprite = new Sprite;
+				
+				var fillType:String = GradientType.RADIAL;
+				var colors:Array = [0xFF000000, 0xFF100000];
+				var alphas:Array = [1, 1];
+				var ratios:Array = [50, 150];
+				var matrix:Matrix = new Matrix;
+				matrix.createGradientBox(circleDim, circleDim, 0, 0, 0);
+				
+				sl.graphics.beginGradientFill(fillType, colors, alphas, ratios, matrix);
+				sl.graphics.moveTo(0, 0);
+				sl.graphics.lineTo(0, circleDim);
+				sl.graphics.lineTo(circleDim, circleDim);
+				sl.graphics.lineTo(circleDim, 0);
+				sl.graphics.lineTo(0, 0);
+				sl.graphics.endFill();
+				
+				var alphaBmp:BitmapData = new BitmapData(w, h, true, colors[1]);
+				matrix = new Matrix;
+				matrix.translate((w - circleDim) / 2, (h - circleDim) / 2);
+				alphaBmp.draw(sl, matrix);
+				var filter:BlurFilter = new BlurFilter(32, 32, 3);
+				alphaBmp.applyFilter(alphaBmp, alphaBmp.rect, new Point(0, 0), filter);
+				
+				var maskBmp:BitmapData = new BitmapData(w, h, true, 0xFF000000);
+				maskBmp.copyChannel(alphaBmp, alphaBmp.rect, new Point(0, 0), BitmapDataChannel.RED, BitmapDataChannel.ALPHA);
+
+				if (_background == null)
+				{
+					_background = new Bitmap(maskBmp);
+					this.rawChildren.addChild(_background);
+				}
+				else
+				{
+					_background.bitmapData = maskBmp;
+				}
+			}
+			
+			private function InitControlPanel():void
+			{
+				controlPanel.y = 0;
+				controlPanel.x = this.width - controlPanel.width + 5;
+			}
+			
+			private function OnControlPanelMouseOver(e:MouseEvent):void
+			{
+				_controlPanelEndX = this.width - controlPanel.width + 5;
+			}
+			
+			private function OnControlPanelMouseOut(e:MouseEvent):void
+			{
+				_controlPanelEndX = this.width - 5;
+			}
+			
+			private function UpdateSource():void
+			{
+				if (source_test.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_TEST;
+				}
+				else if (source_local.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_LOCAL;
+				}
+				else if (source_rss.selected == true)
+				{
+					_modelLocator.dataSource = GlobeModelLocator.DATA_SOURCE_RSS;
+				}
+			}
+			
+			private function OnManageSource():void
+			{
+				var c:LoadSourceManageWndCommand = new LoadSourceManageWndCommand(true);
+				_mainController.handleCommand(LoadSourceManageWndCommand.C_LOAD_SOURCE_MANAGE_WND, c);
+			}
+			
+			private function OnLoadingProgressUpdate(e:Event):void
+			{
+				dlProgress.setProgress(_modelLocator.entirLoadingProgress, 100);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<viewStage:SpacePhotoView id="mainFrame" width="100%" height="100%"/>
+
+	<mx:Canvas id="cameraWnd" width="{GlobeModelLocator.CAMERA_WIDTH}" height="{GlobeModelLocator.CAMERA_HEIGHT}"
+		backgroundColor="0xff8000" visible="false"/>
+	<mx:Canvas id="faceAreaWnd" width="{cameraWnd.width}" height="{cameraWnd.height}"
+		visible="{cameraWnd.visible}"/>
+		
+	<mx:ProgressBar id="dlProgress" x="{this.width * 0.2}" y="{this.height - dlProgress.height - 10}"
+		width="{this.width * 0.6}" height="10" label="" mode="manual"/>
+		
+	<mx:HBox id="controlPanel" height="100%"
+		cornerRadius="5" borderStyle="solid" borderColor="#FF8000" backgroundColor="#515151" backgroundAlpha="0.8"
+		mouseOver="OnControlPanelMouseOver(event)" mouseOut="OnControlPanelMouseOut(event)">
+		
+		<mx:Spacer width="5"/>
+		<mx:VBox width="100%" height="100%">
+			<mx:VBox id="drivenPanel" top="10" right="10">
+				<mx:RadioButtonGroup id="drivenChoiceGroup"/>
+				<mx:RadioButton id="face_driven" label="Face Driven" selected="false" groupName="drivenChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateDriven()"/>
+				<mx:RadioButton id="mouse_driven" label="Mouse Driven" selected="true" groupName="drivenChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateDriven()"/>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox id="sourcePanel" top="10" right="10">
+				<mx:RadioButtonGroup id="sourceChoiceGroup"/>
+				<mx:RadioButton id="source_test" label="Test file" selected="true" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:RadioButton id="source_local" label="Disk file" selected="false" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:RadioButton id="source_rss" label="RSS" selected="false" groupName="sourceChoiceGroup"
+					color="#FFFFFF"
+					click="UpdateSource()"/>
+				<mx:Button id="mgSource" label="Manage Source" click="OnManageSource()"/>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:Spacer width="5"/>
+	</mx:HBox>
+	
+</mx:Canvas>

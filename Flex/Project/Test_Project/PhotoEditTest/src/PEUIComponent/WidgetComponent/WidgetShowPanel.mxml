@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DragPanel xmlns="PEUIComponent.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:widget="PEUIComponent.WidgetCompnent.*"
+	x="150" y="150" width="222" height="106" borderStyle="outset" backgroundColor="#FFFFFF"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	>
+	
+	<mx:Metadata>
+		[Event(name = "closePanel", type = "flash.events.Event")]
+	</mx:Metadata>
+
+	<mx:Script>
+		<![CDATA[
+		
+			private static var inst:WidgetShowPanel = null;
+		
+			public static function GetWidgetShowPanel():WidgetShowPanel
+			{
+				if (inst == null)
+				{
+					inst = new WidgetShowPanel;
+				}
+				return inst;
+			}
+			
+			override public function CanDrag(mx:Number, my:Number):Boolean
+			{
+				return true;
+			}
+			
+			private function OnClose():void
+			{
+				dispatchEvent(new Event("closePanel"));
+			}
+			
+			private function OnWidgetClick(event:MouseEvent):void
+			{
+				var targetImage:Image = event.currentTarget as Image;
+				// create a copy of selected widget
+				var copyWidget:Image = new Image;
+				copyWidget.addEventListener(Event.COMPLETE, OnCopyLoad, false, 0, true);
+				copyWidget.source = targetImage.source as String;
+				this.addChild(copyWidget);
+			}
+			
+			private function OnCopyLoad(event:Event):void
+			{
+				var target:Image = event.currentTarget as Image;
+				target.width = target.contentWidth;
+				target.height = target.contentHeight;
+				var newEvent:WidgetSelectEvent = new WidgetSelectEvent(WidgetSelectEvent.WIDGET_SELECT);
+				newEvent.widgetSource = (event.currentTarget as Image).source;
+				newEvent.widget = event.currentTarget as DisplayObject;
+				newEvent.widgetOwner = this;
+				dispatchEvent(newEvent);
+			}
+
+		]]>
+	</mx:Script>
+
+	<mx:Canvas id="titlePanel" x="0" y="0" width="218" height="33" backgroundColor="#646464" borderStyle="solid">
+		<mx:Label x="10" y="6" text="Widget" color="#FF0000" fontSize="12"/>
+		<mx:Button x="195" y="11" label="Close" width="15" height="11" click="OnClose()"/>
+	</mx:Canvas>
+	
+	<mx:Image id="img1" y="{titlePanel.y + titlePanel.height + 2}" width="80" height="60" source="photo.jpg"
+					click="OnWidgetClick(event)"/>
+	
+</DragPanel>

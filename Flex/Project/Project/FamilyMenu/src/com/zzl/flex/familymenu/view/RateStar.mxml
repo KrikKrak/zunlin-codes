@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalGap="5" creationComplete="OnRateStarCreationComplete()">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import mx.collections.ArrayCollection;
+			
+			private var _curRate:int = 1;
+			private var _starArray:ArrayCollection;
+			
+			[Embed(source="../assets/star_empty.png")]
+			private const STAR_EMPTY:Class;
+			[Embed(source="../assets/star_full.png")]
+			private const STAR_FULL:Class;
+			
+			public function get rate():int
+			{
+				return _curRate;
+			}
+			
+			public function set rate(val:int):void
+			{
+				_curRate = val;
+				UpdateRate();
+			}
+			
+			private function OnRateStarCreationComplete():void
+			{
+				PrepareStars();
+			}
+
+			private function PrepareStars():void
+			{
+				_starArray = new ArrayCollection;
+				_starArray.addItem(s1);
+				_starArray.addItem(s2);
+				_starArray.addItem(s3);
+				_starArray.addItem(s4);
+				_starArray.addItem(s5);
+			}
+			
+			private function OnStarClick(val:String):void
+			{
+				_curRate = int(val.charAt(1));
+				UpdateRate();
+			}
+			
+			private function UpdateRate():void
+			{
+				for (var i:int = 0; i < _starArray.length; ++i)
+				{
+					if (i < _curRate)
+					{
+						(_starArray[i] as Image).source = STAR_FULL;
+					}
+					else
+					{
+						(_starArray[i] as Image).source = STAR_EMPTY;
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+
+	<mx:Image id="s1" source="{STAR_FULL}" scaleX="0.5" scaleY="0.5" click="OnStarClick('s1')"/>
+	<mx:Image id="s2" source="{STAR_EMPTY}" scaleX="0.5" scaleY="0.5" click="OnStarClick('s2')"/>
+	<mx:Image id="s3" source="{STAR_EMPTY}" scaleX="0.5" scaleY="0.5" click="OnStarClick('s3')"/>
+	<mx:Image id="s4" source="{STAR_EMPTY}" scaleX="0.5" scaleY="0.5" click="OnStarClick('s4')"/>
+	<mx:Image id="s5" source="{STAR_EMPTY}" scaleX="0.5" scaleY="0.5" click="OnStarClick('s5')"/>
+</mx:HBox>

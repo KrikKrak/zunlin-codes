@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import flash.ui.Keyboard;
+		
+			[Bindable]
+			public var lsData:ArrayCollection;
+			public var verifyFunction:Function;
+			
+			private function OnInputKeyUp(e:KeyboardEvent):void
+			{
+				if (e.charCode == Keyboard.ENTER)
+				{
+					if (verifyFunction != null)
+					{
+						if (verifyFunction(ip.text) == true)
+						{
+							AddItem(ip.text);
+						}
+						else
+						{
+							MakeSelectAll();
+						}
+					}
+					else
+					{
+						AddItem(ip.text);
+					}
+				}
+			}
+			
+			private function OnLishKeyUp(e:KeyboardEvent):void
+			{
+				if (e.charCode == Keyboard.ENTER)
+				{
+					if (ls.selectedIndex != -1)
+					{
+						ip.text = String(lsData[ls.selectedIndex]);
+						MakeSelectAll();
+					}
+				}
+				else if (e.charCode == Keyboard.DELETE || e.charCode == 127)	// it's a flex bug? del key on my D610 is 127. OMG
+				{
+					if (ls.selectedIndex != -1)
+					{
+						lsData.removeItemAt(ls.selectedIndex);
+					}
+				}
+			}
+			
+			private function AddItem(val:Object):void
+			{
+				if (lsData != null && lsData.getItemIndex(val) == -1)
+				{
+					lsData.addItem(val);
+					lsData.refresh();
+				}
+			}
+			
+			private function OnListDoubleClick():void
+			{
+				if (ls.selectedIndex != -1)
+				{
+					ip.text = String(lsData[ls.selectedIndex]);
+					MakeSelectAll();
+				}
+			}
+			
+			private function MakeSelectAll():void
+			{
+				ip.setFocus();
+				ip.setSelection(0, ip.text.length);
+			}
+			
+			private function OnPickFolderClick():void
+			{
+				var file:File = new File;
+				file.addEventListener(Event.SELECT, OnFolderSelect, false, 0, true);
+				file.browseForDirectory("Pick a folder");
+			}
+			
+			private function OnFolderSelect(e:Event):void
+			{
+				var f:File = e.target as File;
+				ip.text = f.nativePath;
+				MakeSelectAll();
+				AddItem(ip.text);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="cav" width="100%">
+		<mx:TextInput id="ip" width="{cav.width - fb.width - 5}" keyUp="OnInputKeyUp(event)"/>
+		<mx:Button id="fb" x="{ip.width + 5}" label="Pick Folder" click="OnPickFolderClick()"/>
+	</mx:Canvas>
+	
+	<mx:List id="ls" width="100%" height="100%" dataProvider="{lsData}" doubleClickEnabled="true"
+		keyUp="OnLishKeyUp(event)" doubleClick="OnListDoubleClick()"/>	
+	
+</mx:VBox>

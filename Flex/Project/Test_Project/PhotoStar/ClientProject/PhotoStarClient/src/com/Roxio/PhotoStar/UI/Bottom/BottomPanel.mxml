@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:Bottom="com.Roxio.PhotoStar.UI.Bottom.*"
+	implements="com.Roxio.PhotoStar.Mode.IAnimDisplayObject"
+	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	minWidth="{LEFT_PAD + LOGIN_PANEL_WIDTH + MAIN_FUNCTION_PANEL_WIDTH}"
+	backgroundImage="@Resource(key='BottomPanelBackground', bundle='AppPic')" backgroundSize="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.EffectEvent;
+			import mx.effects.Move;
+			
+			private const LEFT_PAD:int = 0;
+			private const LOGIN_PANEL_WIDTH:int = 318;
+			private const LOGIN_PANEL_HEIGHT:int = 70;
+			private const MAIN_FUNCTION_PANEL_WIDTH:int = 678;
+			private const MAIN_FUNCTION_PANEL_HEIGHT:int = 70;
+			private const MAIN_FUNCTION_PANEL_TRANS_HEIGHT:int = 10; // actually it's 15
+		
+			private var _callBackFn:Function;
+		
+			public function startLoad(loadEndCallBackFn:Function):Boolean
+			{
+				_callBackFn = loadEndCallBackFn;
+				
+				this.visible = true;
+				
+				var move:Move = new Move;
+				move.addEventListener(EffectEvent.EFFECT_END, OnMoveEnd, false, 0, true);
+				move.target = this;
+				move.yFrom = this.y + this.height;
+				move.duration = 500;
+				move.play();
+				
+				return true;
+			}
+			
+			public function startHide(hideEndCallBackFn:Function):Boolean
+			{
+				return true;
+			}
+			
+			private function OnMoveEnd(event:EffectEvent):void
+			{
+				_callBackFn();
+			}
+		]]>
+	</mx:Script>
+	
+	<Bottom:LoginPanel id="login_panel" x="{LEFT_PAD}" y="{(this.height - LOGIN_PANEL_HEIGHT) / 2}"
+		width="{LOGIN_PANEL_WIDTH}" height="{LOGIN_PANEL_HEIGHT}"/>
+		
+	<Bottom:MainFunctionPanel id="main_function_panel"
+		x="{(this.width - login_panel.x - login_panel.width - MAIN_FUNCTION_PANEL_WIDTH) / 2 + login_panel.x + login_panel.width}"
+		y="{(this.height - MAIN_FUNCTION_PANEL_HEIGHT - MAIN_FUNCTION_PANEL_TRANS_HEIGHT) / 2}"
+		width="{MAIN_FUNCTION_PANEL_WIDTH}" height="{MAIN_FUNCTION_PANEL_HEIGHT}"/>
+	
+</mx:Canvas>

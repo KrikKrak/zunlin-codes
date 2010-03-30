@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditFunctionPanel xmlns="com.Roxio.PhotoStar.UI.Left.EditComponent.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	implements="com.Roxio.PhotoStar.Mode.IStyleChangeObject">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.StraightenAlgorithm;
+			import com.Roxio.PhotoStar.Algorithm.PhotoAdjust.FlipAlgorithm;
+			import com.Roxio.PhotoStar.UI.MainUIController;
+		
+			public function updateStyle():void
+			{
+				this.setStyle("backgroundImage", resourceManager.getClass("AppPic", "RotateBg"));
+			}
+			
+			private function OnDone(dir:String):void
+			{
+				switch (dir)
+				{
+					case "CW":
+						Rotate(90);
+						break;
+						
+					case "CCW":
+						Rotate(-90);
+						break;
+						
+					case "Ver":
+						Flip(FlipAlgorithm.MIRROR_VERTICAL);
+						break;
+						
+					case "Hor":
+						Flip(FlipAlgorithm.MIRROR_HORIZONTAL);
+						break;
+						
+					default:
+						return;
+				}
+			}
+			
+			private function Flip(dir:uint):void
+			{
+				var flip:FlipAlgorithm = new FlipAlgorithm;
+				flip.data = MainUIController.imageHolder;
+				flip.param = dir;
+				flip.execute();
+			}
+			
+			private function Rotate(angle:Number):void
+			{
+				var radAngle:Number = angle * Math.PI / 180;
+				var rotate:StraightenAlgorithm = new StraightenAlgorithm;
+				rotate.data = MainUIController.imageHolder;
+				rotate.param = radAngle;
+				rotate.execute();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button x="22" y="49" label="CW" click="OnDone('CW')"/>
+	<mx:Button x="75" y="49" label="CCW" click="OnDone('CCW')"/>
+	<mx:Button x="159" y="49" label="HM" click="OnDone('Hor')"/>
+	<mx:Button x="209" y="49" label="VM" click="OnDone('Ver')"/>
+	
+</EditFunctionPanel>

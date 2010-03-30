@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="800" height="600">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			private function OnWrite():void
+			{
+				var file:File = File.desktopDirectory.resolvePath("test.xml");
+				var fs:FileStream = new FileStream;
+				fs.open(file, FileMode.WRITE);
+				
+				fs.writeUTFBytes(ta.text);
+				fs.close();
+			}
+			
+			private function OnRead():void
+			{
+				var file:File = File.desktopDirectory.resolvePath("test.xml");
+				var fs:FileStream = new FileStream;
+				fs.open(file, FileMode.READ);
+				
+				ta.text = fs.readUTFBytes(fs.bytesAvailable);
+				var xml:XML = new XML(ta.text);
+				fs.close();
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="yflexskin.css"/>
+	
+	<mx:TextArea x="24" y="29" width="586" height="375" id="ta"/>
+	<mx:Button x="24" y="433" label="Read" click="OnRead()"/>
+	<mx:Button x="110" y="433" label="Write" click="OnWrite()"/>
+	
+</mx:WindowedApplication>
