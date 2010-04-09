@@ -1,0 +1,791 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>DisplayObjectFilter.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">//  Power by www.RIAHome.cn
+</span><span class="ActionScriptComment">//                 -- Y.Boy
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">cn</span>.<span class="ActionScriptDefault_Text">riahome</span>.<span class="ActionScriptDefault_Text">filters</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">display</span>.<span class="ActionScriptDefault_Text">Bitmap</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">display</span>.<span class="ActionScriptDefault_Text">BitmapData</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">display</span>.<span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">filters</span>.<span class="ActionScriptDefault_Text">ColorMatrixFilter</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">filters</span>.<span class="ActionScriptDefault_Text">DisplacementMapFilter</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">filters</span>.<span class="ActionScriptDefault_Text">DisplacementMapFilterMode</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Matrix</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Rectangle</span>;
+    
+    
+    
+    <span class="ActionScriptASDoc">/**
+     *  DisplayObjectFilters 类包含各种对显示对象进行过滤的常数值和方法，包括：相底反色效果、灰度、查找边缘、锐化、马赛克效果（两种方法）、浮雕效果、杂点效果、素描效果、水彩效果、扩散效果（毛玻璃效果）、球面效果（鱼眼效果）、挤压效果、光照效果（高光效果）、PS里的颜色阈值效果、油画效果、旧照片效果。
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">DisplayObjectFilter</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  相底反色效果。
+         *
+         *  &lt;p&gt;一个给 ColorMatrixFilter 对象作参数用的描述相底反色的常数数组。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">DIGITAL_NEGATIVE_MATRIX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+                                                            <span class="ActionScriptOperator">-</span>1, 0,  0,  0, 255,
+                                                            0,  <span class="ActionScriptOperator">-</span>1, 0,  0, 255,
+                                                            0,  0,  <span class="ActionScriptOperator">-</span>1, 0, 255,
+                                                            0,  0,  0,  1, 1
+                                                            <span class="ActionScriptBracket/Brace">]</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  灰度
+         *
+         *  &lt;p&gt;一个给 ColorMatrixFilter 对象作参数用的描述灰度的常数数组。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">GRAY_SCALE_MATRIX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+                                                        0.3086, 0.6094, 0.0820, 0, 0,
+                                                        0.3086, 0.6094, 0.0820, 0, 0,
+                                                        0.3086, 0.6094, 0.0820, 0, 0,
+                                                        0,      0,      0,      1, 0
+                                                        <span class="ActionScriptBracket/Brace">]</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  查找边缘
+         *
+         *  &lt;p&gt;一个给 ConvolutionFilter 对象作参数用的描述查找边缘的常数数组。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">EDGE_DETECT_MATRIX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+                                                0, <span class="ActionScriptOperator">-</span>1, 0,
+                                                <span class="ActionScriptOperator">-</span>1, 4, <span class="ActionScriptOperator">-</span>1,
+                                                0, <span class="ActionScriptOperator">-</span>1, 0
+                                                <span class="ActionScriptBracket/Brace">]</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  锐化
+         *
+         *  &lt;p&gt;一个给 ConvolutionFilter 对象作参数用的描述锐化的常数数组。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SHARPEN_MATRIX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+                                            0, <span class="ActionScriptOperator">-</span>1, 0,
+                                            <span class="ActionScriptOperator">-</span>1, 5, <span class="ActionScriptOperator">-</span>1,
+                                            0, <span class="ActionScriptOperator">-</span>1, 0
+                                            <span class="ActionScriptBracket/Brace">]</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  构造函数
+         *  &lt;p&gt;本类所有方法均为静态方法，不应创建实例。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">DisplayObjectFilter</span><span class="ActionScriptBracket/Brace">()</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  马赛克效果（算法一）
+         *
+         *  @param source 要施加马赛克效果的 BitmapData 对象。
+         *
+         *  @param block 每块马赛克（正方形）的大小，单位：像素。
+         *
+         *  @returns 返回一个经过马赛克效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">mosaicFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">block</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptComment">// 一个 block 的 RGB 信息统计和该 block 的像素总数
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sumRed</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sumGreen</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sumBlue</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sumPixel</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptComment">// 一个像素的 RGB 信息
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelColor</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelRed</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelGreen</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelBlue</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptComment">// 一个 block 的平均 RGB 信息
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">averageRed</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">averageGreen</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">averageBlue</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">averageColor</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptComment">// 当前轮询像素的位置信息
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">blockColumn</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">blockRow</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptComment">// 当前轮询的 block 的 Rectangle
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Rectangle</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">blockColumn</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">blockColumn</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>; <span class="ActionScriptDefault_Text">blockColumn</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">block</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">blockRow</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">blockRow</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>; <span class="ActionScriptDefault_Text">blockRow</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">block</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptComment">// 开始对一个 block 进行处理
+</span>                    <span class="ActionScriptDefault_Text">sumRed</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">sumGreen</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">sumBlue</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">sumPixel</span> <span class="ActionScriptOperator">=</span> 0;
+                    
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">block</span>; <span class="ActionScriptDefault_Text">pixelY</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelX</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">pixelX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">block</span>; <span class="ActionScriptDefault_Text">pixelX</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptComment">// 开始对一个 pixel 进行处理
+</span>                            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">blockColumn</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">blockRow</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">pixelX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>
+                            <span class="ActionScriptBracket/Brace">{</span>
+                                <span class="ActionScriptDefault_Text">pixelColor</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">blockRow</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">pixelX</span>, <span class="ActionScriptDefault_Text">blockColumn</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptBracket/Brace">)</span>;
+                                <span class="ActionScriptDefault_Text">pixelRed</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelColor</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF0000</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                                <span class="ActionScriptDefault_Text">pixelGreen</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelColor</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x00FF00</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8;
+                                <span class="ActionScriptDefault_Text">pixelBlue</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">pixelColor</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x0000FF</span>;
+                                
+                                <span class="ActionScriptDefault_Text">sumRed</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">pixelRed</span>;
+                                <span class="ActionScriptDefault_Text">sumGreen</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">pixelGreen</span>;
+                                <span class="ActionScriptDefault_Text">sumBlue</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">pixelBlue</span>;
+                                
+                                <span class="ActionScriptDefault_Text">sumPixel</span><span class="ActionScriptOperator">++</span>;
+                            <span class="ActionScriptBracket/Brace">}</span>
+                        <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptDefault_Text">averageRed</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">uint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sumRed</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">sumPixel</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">averageGreen</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">uint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sumGreen</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">sumPixel</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">averageBlue</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">uint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sumBlue</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">sumPixel</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">averageColor</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">averageRed</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">averageGreen</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">averageBlue</span>;
+                    
+                    <span class="ActionScriptComment">// 填充颜色平均颜色的两种算法
+</span>                    
+                    <span class="ActionScriptComment">// 算法一
+</span>                    <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">blockRow</span>;
+                    <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">blockColumn</span>;
+                    <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">block</span>;
+                    
+                    <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">fillRect</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptDefault_Text">averageColor</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    
+                    <span class="ActionScriptComment">// 算法二
+</span>                    <span class="ActionScriptComment">/*
+                    for( pixelColumn = 0; pixelColumn &lt; block; pixelColumn++ )
+                    {
+                        for( pixelRow = 0; pixelRow &lt; block; pixelRow++ )
+                        {
+                            // 开始对一个 pixel 进行处理
+                            if( blockColumn + pixelColumn &lt; source.height &amp;&amp; blockRow + pixelRow &lt; source.width )
+                            {
+                                source.setPixel( blockRow + pixelRow, blockColumn + pixelColumn, averageRed * 65536 + averageGreen * 256 + averageBlue );
+                            }
+                        }
+                    }
+                    */</span>
+                    
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  马赛克效果（算法二）。此方法比算法一执行效率要快，但这是非正式的马赛克算法。
+         *
+         *  @param source 要施加马赛克效果的 DisplayObject 对象。
+         *
+         *  @param scale 马赛克效果的程度，等同于以此参数为缩小率把 source 缩小后的马赛克程度，范围在 [0.0001, 1]，当值小于 0.0001 时以 0.0001 计算；当值大于 1 时，以 1 计算。
+         *
+         *  @returns 返回一个经过马赛克效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">mosaicFilter2</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00000000</span><span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 确保 scale 的范围在：[0.00001, 1]
+</span>            <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> 1, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> 0.0001, <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptOperator">==</span> 0.0001 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">tempBitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> 1, 1, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">tempBitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">ceil</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">ceil</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">scale</span>, <span class="ActionScriptDefault_Text">scale</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>, <span class="ActionScriptDefault_Text">m</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">//m.scale( (1 / pixelation)*(1 / pixelation), (1 / pixelation)*(1 / pixelation) );
+</span>            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">a</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">d</span> <span class="ActionScriptOperator">=</span> 1 <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">scale</span>;
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>, <span class="ActionScriptDefault_Text">m</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  浮雕效果
+         *
+         *  @param value 浮雕程度值。
+         *
+         *  @returns 一个给 ConvolutionFilter 对象作参数用的描述浮雕程度的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getEmbossMatrix</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptBracket/Brace">[</span>
+                    <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">value</span>, <span class="ActionScriptOperator">-</span>1, 0,
+                    <span class="ActionScriptOperator">-</span>1,     1,  1,
+                    0,      1,  <span class="ActionScriptDefault_Text">value</span>
+                    <span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  杂点效果
+         *
+         *  @param sourse 需要添加杂点效果的 BitmapData 对象。
+         *
+         *  @param degree 杂点程度值，范围在 [0, 255]。
+         *
+         *  @returns 返回一个包含杂点效果的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">noiseFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">degree</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 128 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">noise</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">r</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">g</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">b</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>; <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">random</span><span class="ActionScriptBracket/Brace">()</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">degree</span> <span class="ActionScriptOperator">*</span> 2 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">degree</span>; <span class="ActionScriptComment">// 范围在 [-degree, degree]
+</span>                    
+                    <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                    <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x00ff00</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8;
+                    <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x0000ff</span>;
+                    
+                    <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptOperator">?</span> 0 <span class="ActionScriptOperator">:</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptOperator">?</span> 0 <span class="ActionScriptOperator">:</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptOperator">?</span> 0 <span class="ActionScriptOperator">:</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">noise</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span>, <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  素描效果
+         *
+         *  @param source 需要添加素描效果的 BitmapData 对象。
+         *
+         *  @param threshold 门槛值。值越大，素描线越少。范围建议在 [0, 20]。
+         *
+         *  @returns 返回经过素描效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">sketchFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">threshold</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">gray1</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">gray2</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">gray1</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                    <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">+</span> 1, <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">+</span> 1 <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">gray2</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">abs</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">gray1</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">gray2</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">threshold</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span>, 0<span class="ActionScriptDefault_Text">x222222</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span> <span class="ActionScriptReserved">else</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span>, 0<span class="ActionScriptDefault_Text">xFFFFFF</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  水彩效果
+         *
+         *  @param source 需要添加水彩效果的 BitmapData 对象。
+         *
+         *  @param scaleX X 径向晕彩。
+         *
+         *  @param scaleY Y 径向晕彩。
+         *
+         *  @returns 返回经过水彩效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">waterColorFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">scaleX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5, <span class="ActionScriptDefault_Text">scaleY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00FFFFFF</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">perlinNoise</span><span class="ActionScriptBracket/Brace">(</span> 3, 3, 1, 1, <span class="ActionScriptReserved">false</span>, <span class="ActionScriptReserved">true</span>, 1, <span class="ActionScriptReserved">false</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">filter</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplacementMapFilter</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">DisplacementMapFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, 1, 1, <span class="ActionScriptDefault_Text">scaleX</span>, <span class="ActionScriptDefault_Text">scaleY</span>, <span class="ActionScriptDefault_Text">DisplacementMapFilterMode</span>.<span class="ActionScriptDefault_Text">COLOR</span>, 0<span class="ActionScriptDefault_Text">x000000</span>, 0<span class="ActionScriptDefault_Text">x000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">applyFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">filter</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  扩散效果（毛玻璃效果）
+         *
+         *  @param source 需要添加扩散效果的 BitmapData 对象。
+         *
+         *  @param scaleX X 径向扩散。
+         *
+         *  @param scaleY Y 径向扩散。
+         *
+         *  @returns 返回经过扩散效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">diffuseFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">scaleX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5, <span class="ActionScriptDefault_Text">scaleY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 5<span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00FFFFFF</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">noise</span><span class="ActionScriptBracket/Brace">(</span> 888888 <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">filter</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplacementMapFilter</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">DisplacementMapFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, 1, 1, <span class="ActionScriptDefault_Text">scaleX</span>, <span class="ActionScriptDefault_Text">scaleY</span>, <span class="ActionScriptDefault_Text">DisplacementMapFilterMode</span>.<span class="ActionScriptDefault_Text">COLOR</span>, 0<span class="ActionScriptDefault_Text">x000000</span>, 0<span class="ActionScriptDefault_Text">x000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">applyFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">filter</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  球面效果（鱼眼效果）
+         *
+         *  @param source 需要添加球面效果（鱼眼效果）的 BitmapData 对象。
+         *
+         *  @param targetX 球面的中心点 x 坐标。
+         *
+         *  @param targetY 球面的中心点 y 坐标。
+         *
+         *  @returns 返回经过球面效果（鱼眼效果）处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">spherizeFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">targetX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span>, <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxTargetXY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targetX</span>, <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">radian</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">radius</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">offsetX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">offsetY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">r</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">g</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">b</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetX</span>;
+                    <span class="ActionScriptDefault_Text">offsetY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetY</span>;
+                    <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">atan2</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">offsetY</span>, <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">offsetY</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">offsetY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">maxTargetXY</span>;
+                    
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">cos</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">targetX</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sin</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">targetY</span>;
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> 1;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    
+                    <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                    <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x00FF00</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8;
+                    <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x0000FF</span>;
+                    
+                    <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span>, <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  挤压效果
+         *
+         *  @param source 需要添加挤压效果的 BitmapData 对象。
+         *
+         *  @param targetX 挤压的中心点 x 坐标。
+         *
+         *  @param targetY 挤压的中心点 y 坐标。
+         *
+         *  @param degree 挤压程度值。
+         *
+         *  @returns 返回经过挤压效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">pinchFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">targetX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span>, <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span>, <span class="ActionScriptDefault_Text">degree</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 16 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxMidXY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targetX</span>, <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">radian</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">radius</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">offsetX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">offsetY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">r</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">g</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">b</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetX</span>;
+                    <span class="ActionScriptDefault_Text">offsetY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetY</span>;
+                    <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">atan2</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">offsetY</span>, <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sqrt</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">offsetX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">offsetY</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">offsetY</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sqrt</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">degree</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">cos</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">targetX</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sin</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radian</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">targetY</span>;
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> 1;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    
+                    <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                    <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x00ff00</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8;
+                    <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x0000ff</span>;
+                    
+                    <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">j</span>, <span class="ActionScriptDefault_Text">i</span>, <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  光照效果（高光效果）
+         *
+         *  @param source 需要添加光照效果的 BitmapData 对象。
+         *
+         *  @param targetX 光照效果的中心点 x 坐标。
+         *
+         *  @param targetY 光照效果的中心点 y 坐标。
+         *
+         *  @param radius 光照圈的半径。
+         *
+         *  @param power 施加光照的强度。范围在 [0, 255]。
+         *
+         *  @returns 返回经过光照效果处理的 BitmapData 对象。
+         *
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">lightingFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">targetX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span>, <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span>, <span class="ActionScriptDefault_Text">radius</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0, <span class="ActionScriptDefault_Text">power</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 128 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">==</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sr</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">radius</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sd</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">r</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">g</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">b</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">distance</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">brightness</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>; <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>; <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">sd</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">targetY</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sd</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">sr</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                        <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x00ff00</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8;
+                        <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">x0000ff</span>;
+                        <span class="ActionScriptDefault_Text">distance</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sqrt</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sd</span> <span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptDefault_Text">brightness</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">power</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">distance</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">radius</span> <span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span>;
+                        <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span>;
+                        <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span> <span class="ActionScriptOperator">&gt;</span> 255 <span class="ActionScriptOperator">?</span> 255 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brightness</span>;
+                        <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span>, <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  PS里的颜色阈值效果
+         *
+         *  @param source 需要添加颜色阈值效果的 BitmapData 对象。
+         *
+         *  @param threshold 阈值。范围在 [0, 255]。
+         *
+         *  @returns 返回经过颜色阈值效果处理的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">thresholdFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">threshold</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 128 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">xFF000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptDefault_Text">threshold</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> 0, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">threshold</span>, 255 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">threshold</span> <span class="ActionScriptOperator">=</span>  255 <span class="ActionScriptOperator">*</span> 0<span class="ActionScriptDefault_Text">xFFFFFF</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">threshold</span> <span class="ActionScriptOperator">*</span> 0<span class="ActionScriptDefault_Text">xFFFF</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">threshold</span> <span class="ActionScriptOperator">*</span> 0<span class="ActionScriptDefault_Text">xFF</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">threshold</span>;
+            
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">threshold</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span>0, 0<span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptString">&quot;&gt;&quot;</span>, <span class="ActionScriptDefault_Text">threshold</span>, 0<span class="ActionScriptDefault_Text">x00FFFFFF</span>, 0<span class="ActionScriptDefault_Text">xFFFFFFFF</span>, <span class="ActionScriptReserved">false</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  油画效果
+         *
+         *  @param source 需要添加油画效果的 BitmapData 对象。
+         *
+         *  @param brushSize 笔刷大小。范围在 [1, 8]。
+         *
+         *  @param coarseness 粗糙值。范围在 [1, 255]。
+         *
+         *  @returns 返回一个添加了油画效果的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">oilPaintingFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>, <span class="ActionScriptDefault_Text">brushSize</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 1, <span class="ActionScriptDefault_Text">coarseness</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 32 <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">gray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">r</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">g</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">b</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">a</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">arraylen</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">coarseness</span> <span class="ActionScriptOperator">+</span> 1;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">RedAverage</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">GreenAverage</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">BlueAverage</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">AlphaAverage</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">filter</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">ColorMatrixFilter</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ColorMatrixFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">DisplayObjectFilter</span>.<span class="ActionScriptDefault_Text">GRAY_SCALE_MATRIX</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">applyFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">filter</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">top</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bottom</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">left</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">right</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span>; <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">top</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">brushSize</span>;
+                <span class="ActionScriptDefault_Text">bottom</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brushSize</span> <span class="ActionScriptOperator">+</span> 1;
+                
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">top</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">top</span> <span class="ActionScriptOperator">=</span> 0;
+                <span class="ActionScriptBracket/Brace">}</span>
+                
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">bottom</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">bottom</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> 1;
+                <span class="ActionScriptBracket/Brace">}</span>
+                
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>; <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">left</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">brushSize</span>;
+                    <span class="ActionScriptDefault_Text">right</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">brushSize</span> <span class="ActionScriptOperator">+</span> 1;
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">left</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">left</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">right</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">right</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">width</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">arraylen</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> 0;
+                        <span class="ActionScriptDefault_Text">RedAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> 0;
+                        <span class="ActionScriptDefault_Text">GreenAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> 0;
+                        <span class="ActionScriptDefault_Text">BlueAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> 0;
+                        <span class="ActionScriptDefault_Text">AlphaAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">top</span>; <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">bottom</span>; <span class="ActionScriptDefault_Text">j</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">left</span>; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">right</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span>, <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptBracket/Brace">)</span>;
+                            <span class="ActionScriptDefault_Text">gray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xff0000</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16;
+                            <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">tempBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span>, <span class="ActionScriptDefault_Text">j</span> <span class="ActionScriptBracket/Brace">)</span>;
+                            <span class="ActionScriptDefault_Text">a</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&gt;&gt;</span> 24 <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF</span>;
+                            <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&gt;&gt;</span> 16 <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF</span>;
+                            <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&gt;&gt;</span> 8 <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF</span>;
+                            <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF</span>;
+                            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">coarseness</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">gray</span> <span class="ActionScriptOperator">/</span> 255 <span class="ActionScriptBracket/Brace">)</span>;
+                            <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptBracket/Brace">]</span><span class="ActionScriptOperator">++</span>;
+                            <span class="ActionScriptDefault_Text">RedAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">r</span>;
+                            <span class="ActionScriptDefault_Text">GreenAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">g</span>;
+                            <span class="ActionScriptDefault_Text">BlueAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">b</span>;
+                            <span class="ActionScriptDefault_Text">AlphaAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">intensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">a</span>;
+                        <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">closenIntensity</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxInstance</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span>;
+                    
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">arraylen</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptBracket/Brace">)</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptDefault_Text">closenIntensity</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">i</span>;
+                            <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">CountIntensity</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span>;
+                        <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    
+                    <span class="ActionScriptDefault_Text">a</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">AlphaAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">closenIntensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">RedAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">closenIntensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">GreenAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">closenIntensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">BlueAverage</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">closenIntensity</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">maxInstance</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span>, <span class="ActionScriptDefault_Text">a</span> <span class="ActionScriptOperator">*</span> 16777216 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">r</span> <span class="ActionScriptOperator">*</span> 65536 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">g</span> <span class="ActionScriptOperator">*</span> 256 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  旧照片效果
+         *
+         *  @param source 需要添加旧照片效果的 BitmapData 对象。
+         *
+         *  @returns 返回一个添加了旧照片效果的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">oldPictureFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">source</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldPictureMatrix</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+                                            0.94, 0,   0,   0,   0,
+                                            0,    0.9, 0,   0,   0,
+                                            0,    0,   0.8, 0,   0,
+                                            0,    0,   0,   0.8, 0
+                                            <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">returnBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>.<span class="ActionScriptDefault_Text">clone</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">grayFilter</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">ColorMatrixFilter</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ColorMatrixFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">DisplayObjectFilter</span>.<span class="ActionScriptDefault_Text">GRAY_SCALE_MATRIX</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldPictureFilter</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">ColorMatrixFilter</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ColorMatrixFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">oldPictureMatrix</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">applyFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">grayFilter</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">applyFilter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>, <span class="ActionScriptDefault_Text">returnBitmapData</span>.<span class="ActionScriptDefault_Text">rect</span>, <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> 0, 0 <span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">oldPictureFilter</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">returnBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

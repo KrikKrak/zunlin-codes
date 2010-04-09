@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<node label="AdjustDisplayObject">
+	<node label="color（颜色）">
+		<node label="brightness（亮度）" data="brightness"/>
+		<node label="contrast（对比度）" data="contrast"/>
+		<node label="hue（色相）" data="hue"/>
+		<node label="saturation（饱和度）" data="saturation"/>
+	</node>
+	<node label="filters（滤镜）">
+		<node label="diffuse（扩散）" data="diffuse"/>
+		<node label="emboss（浮雕）" data="emboss"/>
+		<node label="lighting（光照）" data="lighting"/>
+		<node label="mosaic1（马赛克1）" data="mosaic1"/>
+		<node label="mosaic2（马赛克2）" data="mosaic2"/>
+		<node label="noise（杂点）" data="noise"/>
+		<node label="oilPainting（油画）" data="oilPainting"/>
+		<node label="oldPicture（旧照片）" data="oldPicture"/>
+		<node label="pinch（挤压）" data="pinch"/>
+		<node label="sketch（素描）" data="sketch"/>
+		<node label="spherize（球面）" data="spherize"/>
+		<node label="threshold（阈值）" data="threshold"/>
+		<node label="waterColor（水彩）" data="waterColor"/>
+	</node>
+	<node label="transformer（转变）">
+		<node label="alignBottomEdge（底对齐）" data="alignBottomEdge"/>
+		<node label="alignHorizonalCenter（水平中对齐）" data="alignHorizonalCenter"/>
+		<node label="alignLeftEdge（左对齐）" data="alignLeftEdge"/>
+		<node label="alignRightEdge（右对齐）" data="alignRightEdge"/>
+		<node label="alignTopEdge（上对齐）" data="alignTopEdge"/>
+		<node label="alignVerticalCenter（垂直中对齐）" data="alignVerticalCenter"/>
+		<node label="cutOutRect（裁剪矩形）" data="cutOutRect"/>
+		<node label="cutOutSuper（裁剪任意形状）" data="cutOutSuper"/>
+		<node label="distributeBottomEdge（底部分布）" data="distributeBottomEdge"/>
+		<node label="distributeHorizonalCenter（水平居中分布）" data="distributeHorizonalCenter"/>
+		<node label="distributeLeftEdge（左侧分布）" data="distributeLeftEdge"/>
+		<node label="distributeRightEdge（右侧分布）" data="distributeRightEdge"/>
+		<node label="distributeTopEdge（顶部分布）" data="distributeTopEdge"/>
+		<node label="distributeVerticalCenter（垂直居中分布）" data="distributeVerticalCenter"/>
+		<node label="rotateAroundExternalPoint（围绕其父级中的变形点进行旋转）" data="rotateAroundExternalPoint"/>
+		<node label="rotateAroundInternalPoint（围绕其内部的变形点进行旋转）" data="rotateAroundInternalPoint"/>
+		<node label="scaleX（水平缩放）" data="scaleX"/>
+		<node label="scaleY（垂直缩放）" data="scaleY"/>
+		<node label="skewX（水平倾斜）" data="skewX"/>
+		<node label="skewY（垂直倾斜）" data="skewY"/>
+	</node>
+</node>

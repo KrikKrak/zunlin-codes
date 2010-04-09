@@ -1,0 +1,175 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>DisplayObjectAdjustColor.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">//  Power by www.RIAHome.cn
+</span><span class="ActionScriptComment">//                 -- Y.Boy
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">cn</span>.<span class="ActionScriptDefault_Text">riahome</span>.<span class="ActionScriptDefault_Text">color</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptASDoc">/**
+     *  DisplayObjectAdjustColor 类包含对显示对象进行调整颜色的静态方法：亮度、对比度、饱和度和色相。
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">DisplayObjectAdjustColor</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        
+        <span class="ActionScriptASDoc">/**
+         *  @private
+         *
+         *  constant for contrast calculations:
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">DELTA_INDEX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">[</span>
+            0,    0.01, 0.02, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1,  0.11,
+            0.12, 0.14, 0.15, 0.16, 0.17, 0.18, 0.20, 0.21, 0.22, 0.24,
+            0.25, 0.27, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42,
+            0.44, 0.46, 0.48, 0.5,  0.53, 0.56, 0.59, 0.62, 0.65, 0.68, 
+            0.71, 0.74, 0.77, 0.80, 0.83, 0.86, 0.89, 0.92, 0.95, 0.98,
+            1.0,  1.06, 1.12, 1.18, 1.24, 1.30, 1.36, 1.42, 1.48, 1.54,
+            1.60, 1.66, 1.72, 1.78, 1.84, 1.90, 1.96, 2.0,  2.12, 2.25, 
+            2.37, 2.50, 2.62, 2.75, 2.87, 3.0,  3.2,  3.4,  3.6,  3.8,
+            4.0,  4.3,  4.7,  4.9,  5.0,  5.5,  6.0,  6.5,  6.8,  7.0,
+            7.3,  7.5,  7.8,  8.0,  8.4,  8.7,  9.0,  9.4,  9.6,  9.8, 
+            10.0
+        <span class="ActionScriptBracket/Brace">]</span>;
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  构造函数
+         *  &lt;p&gt;本类所有方法均为静态方法，不应创建实例。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">DisplayObjectAdjustColor</span><span class="ActionScriptBracket/Brace">()</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  获得亮度矩阵。
+         *
+         *  @param value 亮度值，范围在[-100, 100]。
+         *
+         *  @returns 一个描述亮度值的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getBrightnessMatrix</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptOperator">-</span>100, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span>, 100 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptBracket/Brace">[</span>
+                    1, 0, 0, 0, <span class="ActionScriptDefault_Text">value</span>,
+                    0, 1, 0, 0, <span class="ActionScriptDefault_Text">value</span>,
+                    0, 0, 1, 0, <span class="ActionScriptDefault_Text">value</span>,
+                    0, 0, 0, 1, 0,
+                    0, 0, 0, 0, 1
+                    <span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  获得对比度矩阵。
+         *
+         *  @param value 对比度值，范围在[-100, 100]。
+         *
+         *  @returns 一个描述对比度值的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getContrastMatrix</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptOperator">-</span>100, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span>, 100 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> 127 <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">/</span> 100 <span class="ActionScriptOperator">*</span> 127;
+            <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">%</span> 1;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">==</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DELTA_INDEX</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptComment">//x = DELTA_INDEX[(p_val&lt;&lt;0)]; // this is how the IDE does it.
+</span>                    <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DELTA_INDEX</span><span class="ActionScriptBracket/Brace">[(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">&lt;&lt;</span>0<span class="ActionScriptBracket/Brace">)]</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptBracket/Brace">(</span>1 <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">DELTA_INDEX</span><span class="ActionScriptBracket/Brace">[(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">&lt;&lt;</span>0<span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">+</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">x</span>; <span class="ActionScriptComment">// use linear interpolation for more granularity.
+</span>                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">*</span> 127 <span class="ActionScriptOperator">+</span> 127;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptBracket/Brace">[</span>
+                    <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">/</span>127, 0,     0,     0, 0.5<span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>127<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,
+                    0,     <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">/</span>127, 0,     0, 0.5<span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>127<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,
+                    0,     0,     <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">/</span>127, 0, 0.5<span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>127<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,
+                    0,     0,     0,     1, 0,
+                    0,     0,     0,     0, 1
+                    <span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  获得饱和度矩阵。
+         *
+         *  @param value 饱和度值，范围在[-100, 100]。
+         *
+         *  @returns 一个描述饱和度值的数组。 
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getSaturationMatrix</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptOperator">-</span>100, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span>, 100 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 1 <span class="ActionScriptOperator">+</span> <span class="ActionScriptBracket/Brace">((</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">&gt;</span> 0<span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">?</span> 3 <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">/</span> 100 <span class="ActionScriptOperator">:</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">/</span> 100<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.3086;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.6094;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.0820;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptBracket/Brace">[</span>
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   0, 0,
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   0, 0,
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span>,   <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">x</span>, 0, 0,
+                    0,            0,            0,            1, 0,
+                    0,            0,            0,            0, 1
+                    <span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  获得色相矩阵。
+         *
+         *  @param value 色相值，范围在[-180, 180]。
+         *
+         *  @returns 一个描述色相值的数组。 
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getHueMatrix</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptOperator">-</span>180, <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span>, 180 <span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">cos</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">sin</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.213;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.715;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.072;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptBracket/Brace">[</span>
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptBracket/Brace">)</span>,    <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptBracket/Brace">)</span>,  <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptBracket/Brace">)</span>, 0, 0,
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>0.143<span class="ActionScriptBracket/Brace">)</span>,     <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>0.140<span class="ActionScriptBracket/Brace">)</span>, <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span>0.283<span class="ActionScriptBracket/Brace">)</span>, 0, 0,
+                    <span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumR</span><span class="ActionScriptBracket/Brace">))</span>, <span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">lumG</span><span class="ActionScriptBracket/Brace">)</span>,   <span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">cosVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">+</span><span class="ActionScriptDefault_Text">sinVal</span><span class="ActionScriptOperator">*</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">lumB</span><span class="ActionScriptBracket/Brace">)</span>,  0, 0,
+                    0,                                      0,                                   0,                                   1, 0,
+                    0,                                      0,                                   0,                                   0, 1
+                    <span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

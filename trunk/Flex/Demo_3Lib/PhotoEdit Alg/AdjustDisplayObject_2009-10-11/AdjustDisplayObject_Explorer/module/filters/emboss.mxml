@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal">
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.filters.DisplayObjectFilter;
+			import mx.controls.HSlider;
+			import mx.events.SliderEvent;
+			
+			private function onChange( event:SliderEvent ):void
+			{
+				var value:Number = (event.target as HSlider).value; // 浮雕程度值
+				var m:Array = DisplayObjectFilter.getEmbossMatrix( value );
+				var c:ConvolutionFilter = new ConvolutionFilter( 3, 3, m );
+				img.filters = [c];
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+	<mx:HSlider
+		minimum="-100"
+		maximum="100"
+		change="onChange( event )"
+		x="268"
+		y="10"
+		width="200"
+		labels="[浮雕, ]"
+		value="0"
+		liveDragging="true"
+	/>
+	
+</mx:Module>

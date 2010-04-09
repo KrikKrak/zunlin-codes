@@ -1,0 +1,903 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>DisplayObjectTransformer.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">//  Power by www.RIAHome.cn
+</span><span class="ActionScriptComment">//                 -- Y.Boy
+</span><span class="ActionScriptComment">//
+</span><span class="ActionScriptComment">////////////////////////////////////////////////////////////////////////////////
+</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">cn</span>.<span class="ActionScriptDefault_Text">riahome</span>.<span class="ActionScriptDefault_Text">transformer</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">display</span>.<span class="ActionScriptDefault_Text">BitmapData</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">display</span>.<span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Matrix</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span>.<span class="ActionScriptDefault_Text">geom</span>.<span class="ActionScriptDefault_Text">Rectangle</span>;
+
+    <span class="ActionScriptASDoc">/**
+     *  BitmapTransformer 类包含各种对显示对象进行变形转换的方法，包括：裁剪、旋转、缩放、倾斜、对齐、分布。
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">DisplayObjectTransformer</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         *  水平缩放时，定轴为左边缘。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_LEFT</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;left&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  水平缩放时，定轴为水平中心轴。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_HORIZONAL_CENTER</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;horizonalCenter&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  水平缩放时，定轴为右边缘。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_RIGHT</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;right&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  垂直缩放时，定轴为上边缘。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_TOP</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;top&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  垂直缩放时，定轴为垂直中心轴。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_VERTICAL_CENTER</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;verticalCenter&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  垂直缩放时，定轴为下边缘。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_BOTTOM</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">&quot;bottom&quot;</span>;
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  构造函数
+         *  &lt;p&gt;本类所有方法均为静态方法，不应创建实例。&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">DisplayObjectTransformer</span><span class="ActionScriptBracket/Brace">()</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  裁剪
+</span>        <span class="ActionScriptComment">//     |- 裁剪矩形
+</span>        <span class="ActionScriptComment">//     |- 裁剪任意形状
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  裁剪指定矩形区域并返回一个包含结果的 BitmapData 对象。
+         *
+         *  @param target 需要裁剪的显示对象。
+         *
+         *  @param width 位图图像的宽度，以像素为单位。
+         *
+         *  @param height 位图图像的高度，以像素为单位。
+         *
+         *  @param distanceX 切割矩形左上角的点到显示对象矩形左上角的点的水平距离。注意：左上角的点不一定就是注册点（0, 0）外，变形过的显示对象就是一个例外。
+         *
+         *  @param distanceY 切割矩形左上角的点到显示对象矩形左上角的点的垂直距离。注意：左上角的点不一定就是注册点（0, 0）外，变形过的显示对象就是一个例外。
+         *
+         *  @param transparent 指定裁剪后的位图图像是否支持每个像素具有不同的透明度。默认值为 true（透明）。若要创建完全透明的位图，请将 transparent 参数的值设置为 true，将 fillColor 参数的值设置为 0x00000000（或设置为 0）。将 transparent 属性设置为 false 可以略微提升呈现性能。
+         *
+         *  @param fillColor 用于填充裁剪后的位图图像区域背景的 32 位 ARGB 颜色值。默认值为 0x00000000（纯透明黑色）。
+         *
+         *  @returns 返回裁剪后的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">cutOutRect</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">width</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">height</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">distanceX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">distanceY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">transparent</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>, <span class="ActionScriptDefault_Text">fillColor</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0<span class="ActionScriptDefault_Text">x00000000</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">getBounds</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">parent</span> <span class="ActionScriptBracket/Brace">)</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">distanceX</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">getBounds</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">parent</span> <span class="ActionScriptBracket/Brace">)</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">distanceY</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bmpData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">BitmapData</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">height</span>, <span class="ActionScriptDefault_Text">transparent</span>, <span class="ActionScriptDefault_Text">fillColor</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">bmpData</span>.<span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>, <span class="ActionScriptDefault_Text">m</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">bmpData</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  超级裁剪工具！可裁剪任意形状！给定一个裁剪目标和一个模板，就可根据模板裁剪出形状相配的 BitmapData 数据。
+         *
+         *  @param target 需要裁剪的显示对象。
+         *
+         *  @param template 裁剪模板，可以是任意形状。
+         *
+         *  @param isAnti Anti-aliasing，指示是否抗锯齿。
+         *
+         *  @returns 返回裁剪后的 BitmapData 对象。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">cutOutSuper</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">template</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">isAnti</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rectTarget</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rectTemplate</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">template</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">targetBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObjectTransformer</span>.<span class="ActionScriptDefault_Text">cutOutRect</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>, <span class="ActionScriptDefault_Text">rectTarget</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">rectTarget</span>.<span class="ActionScriptDefault_Text">height</span>, 0, 0, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">templateBitmapData</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">BitmapData</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObjectTransformer</span>.<span class="ActionScriptDefault_Text">cutOutRect</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">template</span>, <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">width</span>, <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">height</span>, 0, 0, <span class="ActionScriptReserved">true</span>, 0<span class="ActionScriptDefault_Text">x00000000</span> <span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">height</span>; <span class="ActionScriptDefault_Text">pixelY</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">pixelX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">pixelX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">width</span>; <span class="ActionScriptDefault_Text">pixelX</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempColor32</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">templateBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelX</span>, <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">targetColor32</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targetBitmapData</span>.<span class="ActionScriptDefault_Text">getPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">rectTarget</span>.<span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">pixelY</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rectTemplate</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">rectTarget</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">tempColor32</span> <span class="ActionScriptOperator">!=</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">isAnti</span> <span class="ActionScriptBracket/Brace">)</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">tempAlpha</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">tempColor32</span> <span class="ActionScriptOperator">&gt;&gt;</span> 24 <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFF</span>;
+                            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">targetRGB</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targetColor32</span> <span class="ActionScriptOperator">&amp;</span> 0<span class="ActionScriptDefault_Text">xFFFFFF</span>;
+                            <span class="ActionScriptDefault_Text">templateBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelX</span>, <span class="ActionScriptDefault_Text">pixelY</span>, <span class="ActionScriptDefault_Text">tempAlpha</span> <span class="ActionScriptOperator">&lt;&lt;</span> 24 <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">targetRGB</span> <span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptDefault_Text">templateBitmapData</span>.<span class="ActionScriptDefault_Text">setPixel32</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">pixelX</span>, <span class="ActionScriptDefault_Text">pixelY</span>, <span class="ActionScriptDefault_Text">targetColor32</span> <span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">templateBitmapData</span>;
+            
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  旋转
+</span>        <span class="ActionScriptComment">//     |- 绕内部点
+</span>        <span class="ActionScriptComment">//     |- 绕外部点
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  令显示对象围绕其内部的变形点进行旋转，旋转角度由 angleDegress 参数指定。
+         *
+         *  @param target 要进行旋转的显示对象。
+         *
+         *  @param x 该点的 x 坐标。
+         *
+         *  @param y 该点的 y 坐标。
+         *
+         *  @param angleDegrees 以度为单位的旋转角度。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">rotateAroundInternalPoint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">angleDegrees</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            
+            <span class="ActionScriptComment">// fl.motion.MatrixTransformer.rotateAroundInternalPoint(m:Matrix, x:Number, y:Number, angleDegrees:Number)
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">point</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">x</span>, <span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">transformPoint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">point</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">point</span>.<span class="ActionScriptDefault_Text">x</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">point</span>.<span class="ActionScriptDefault_Text">y</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">rotate</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">angleDegrees</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">PI</span> <span class="ActionScriptOperator">/</span> 180 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">point</span>.<span class="ActionScriptDefault_Text">x</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">point</span>.<span class="ActionScriptDefault_Text">y</span>;
+            
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  令显示对象围绕其父级中的变形点进行旋转，旋转角度由 angleDegress 参数指定。
+         *
+         *  @param target 要进行旋转的显示对象。
+         *
+         *  @param x 该点的 x 坐标。
+         *
+         *  @param y 该点的 y 坐标。
+         *
+         *  @param angleDegrees 以度为单位的旋转角度。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">rotateAroundExternalPoint</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">angleDegrees</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            
+            <span class="ActionScriptComment">// fl.motion.MatrixTransformer.rotateAroundExternalPoint(m:Matrix, x:Number, y:Number, angleDegrees:Number)
+</span>            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">x</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">y</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">rotate</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">angleDegrees</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">PI</span> <span class="ActionScriptOperator">/</span> 180 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">x</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">y</span>;
+            
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  缩放
+</span>        <span class="ActionScriptComment">//     |- 水平缩放
+</span>        <span class="ActionScriptComment">//     |        |- 左边缘定轴
+</span>        <span class="ActionScriptComment">//     |        |- 中垂线定轴
+</span>        <span class="ActionScriptComment">//     |        |- 右边缘定轴
+</span>        <span class="ActionScriptComment">//     |
+</span>        <span class="ActionScriptComment">//     |- 垂直缩放
+</span>        <span class="ActionScriptComment">//              |- 上边缘定轴
+</span>        <span class="ActionScriptComment">//              |- 中横线定轴
+</span>        <span class="ActionScriptComment">//              |- 下边缘定轴
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  搭配
+</span>        <span class="ActionScriptComment">//     |- 左边缘: left
+</span>        <span class="ActionScriptComment">//     |- 中垂线: horizonalCenter
+</span>        <span class="ActionScriptComment">//     |- 右边缘: right
+</span>        <span class="ActionScriptComment">//     |- 上边缘: top
+</span>        <span class="ActionScriptComment">//     |- 中横线: verticalCenter
+</span>        <span class="ActionScriptComment">//     |- 下边缘: bottom
+</span>        <span class="ActionScriptComment">//     |- 左上角: right-bottom
+</span>        <span class="ActionScriptComment">//     |- 左下角: right-top
+</span>        <span class="ActionScriptComment">//     |- 右上角: left-bottom
+</span>        <span class="ActionScriptComment">//     |- 右下角: left-top
+</span>        <span class="ActionScriptComment">//     |- 中心点: horizonalCenter-verticalCenter
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  对显示对象进行水平缩放，缩放后的新宽度由 newWidth 指定。
+         *
+         *  @param target 要进行水平缩放的显示对象。
+         *
+         *  @param newWidth 水平缩放后新的宽度。可以为负值，负值表示翻转。
+         *
+         *  @param scaleAxis 水平缩放的定轴。可选值有：left、right、horizonalCenter。假如以左边缘为定轴进行缩放，则应值用 DisplayObjectTransformer.SCALE_AXIS_LEFT 值。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">scaleX</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">newWidth</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">scaleAxis</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptComment">// 避免宽度被设为0
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">==</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">=</span> 1;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 显示对象旧的 Rectangle 范围。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldRect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>; <span class="ActionScriptComment">// target.getBounds( target.stage );
+</span>            
+            <span class="ActionScriptComment">// 水平缩放
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sx</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">width</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">a</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">sx</span>, 1 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">sx</span>, 1 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            
+            <span class="ActionScriptComment">// 水平移动
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newRect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>; <span class="ActionScriptComment">// 显示对象新的 Rectangle 范围。
+</span>            <span class="ActionScriptReserved">switch</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">scaleAxis</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_LEFT</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为左边框
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">x</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                    
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_HORIZONAL_CENTER</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为水平中心轴
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">/</span> 2<span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">/</span> 2<span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                    
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_RIGHT</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为右边框
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                
+                <span class="ActionScriptReserved">default</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Error</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptString">&quot;水平缩放时，指定的定轴类型不正确！&quot;</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  对显示对象进行垂直缩放，缩放后的新高度由 newHeight 指定。
+         *
+         *  @param target 要进行垂直缩放的显示对象。
+         *
+         *  @param newHeight 垂直缩放后新的高度。可以为负值，负值表示翻转。
+         *
+         *  @param scaleAxis 垂直缩放的定轴。可选值有：top、bottom、verticalCenter。假如以上边缘为定轴进行缩放，则应值用 DisplayObjectTransformer.SCALE_AXIS_TOP 值。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">scaleY</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">newHeight</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span>, <span class="ActionScriptDefault_Text">scaleAxis</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptComment">// 避免高度被设为0
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">==</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">=</span> 1;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 显示对象旧的 Rectangle 范围。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldRect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+            
+            <span class="ActionScriptComment">// 垂直缩放
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sy</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">height</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">d</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptBracket/Brace">(</span> 1, <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">sy</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span><span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">scale</span><span class="ActionScriptBracket/Brace">(</span> 1, <span class="ActionScriptDefault_Text">sy</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            
+            <span class="ActionScriptComment">// 垂直移动
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newRect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>; <span class="ActionScriptComment">// 显示对象新的 Rectangle 范围。
+</span>            <span class="ActionScriptReserved">switch</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">scaleAxis</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_TOP</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为上边框
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">y</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                    
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_VERTICAL_CENTER</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为垂直中心轴
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">/</span> 2<span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">/</span> 2<span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                    
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">SCALE_AXIS_BOTTOM</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptComment">// 定轴为下边框
+</span>                    <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">newRect</span>.<span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">oldRect</span>.<span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                
+                <span class="ActionScriptReserved">default</span><span class="ActionScriptOperator">:</span>
+                    <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Error</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptString">&quot;垂直缩放时，指定的定轴类型不正确！&quot;</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  倾斜
+</span>        <span class="ActionScriptComment">//     |- 水平倾斜
+</span>        <span class="ActionScriptComment">//     |- 垂直倾斜
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  对显示对象进行水平倾斜，倾斜的角度由 skewX 指定。
+         *
+         *  @param target 要进行水平倾斜的显示对象。
+         *
+         *  @param skewX 需要增加的水平倾斜度，以度为单位，可为负值。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">skewX</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">skewX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">c</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">tan</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">skewX</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">PI</span> <span class="ActionScriptOperator">/</span> 180 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  对显示对象进行垂直倾斜，倾斜的角度由 skewY 指定。
+         *
+         *  @param target 要进行垂直倾斜的显示对象。
+         *
+         *  @param skewX 需要增加的垂直倾斜度，以度为单位，可为负值。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">skewY</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>, <span class="ActionScriptDefault_Text">skewY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+            <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">b</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">tan</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">skewY</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span>.<span class="ActionScriptDefault_Text">PI</span> <span class="ActionScriptOperator">/</span> 180 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  对齐
+</span>        <span class="ActionScriptComment">//     |- 左对齐
+</span>        <span class="ActionScriptComment">//     |- 水平中齐
+</span>        <span class="ActionScriptComment">//     |- 右对齐
+</span>        <span class="ActionScriptComment">//     |- 上对齐
+</span>        <span class="ActionScriptComment">//     |- 垂直中齐
+</span>        <span class="ActionScriptComment">//     |- 底对齐
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  左对齐给定的显示对象，所有显示对象将向最左边的显示对象靠拢。需要进行左对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignLeftEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 最左边的显示对象所对应的 Rectangle 范围的 x 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 x 坐标。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptDefault_Text">xArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">xArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其左对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minX</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  水平中对齐给定的显示对象，所有显示对象将向最左边的显示对象的左边缘与最右边的显示对象的右边缘之间的水平中线靠拢。需要进行水平中对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignHorizonalCenter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 width 值。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 目录对齐的水平中线的 x 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 x 坐标和 width 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">xArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">widthArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 求最右边缘的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">DESCENDING</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">xArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">centerX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其水平中对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> 2 <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">centerX</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  右对齐给定的显示对象，所有显示对象将向最右边的显示对象靠拢。需要进行右对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignRightEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 width 值。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 最右边的显示对象的右边缘所对应的 Rectangle 范围的 x 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 x 坐标和 width 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">xArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">widthArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 求最右边缘的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">DESCENDING</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其水平中对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">xArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">widthArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">])</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  上对齐给定的显示对象，所有显示对象将向最上边的显示对象靠拢。需要进行上对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignTopEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 最上边的显示对象所对应的 Rectangle 范围的 y 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptDefault_Text">yArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">yArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其上对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minY</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  垂直中对齐给定的显示对象，所有显示对象将向最上边的显示对象的上边缘与最下边的显示对象的下边缘之间的垂直中线靠拢。需要进行垂直中对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignVerticalCenter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 height 值。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 目录对齐的垂直中线的 y 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 y 坐标和 height 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">yArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">heightArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 求最下边缘的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">DESCENDING</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">yArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">centerY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其垂直中对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">/</span> 2 <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">centerY</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  底对齐给定的显示对象，所有显示对象将向最下边的显示对象靠拢。需要进行底对齐操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">alignBottomEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 范围的 height 值。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 轮询 targets 时的循环计数器。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>; <span class="ActionScriptComment">// 轮询 targets 时的当前显示对象。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 最下边的显示对象的下边缘所对应的 Rectangle 范围的 y 坐标。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 y 坐标和 height 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">yArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">heightArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptComment">// 求最下边缘的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">DESCENDING</span> <span class="ActionScriptBracket/Brace">)[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，使其底对齐。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">yArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">heightArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">])</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//  分布
+</span>        <span class="ActionScriptComment">//     |- 顶部分布
+</span>        <span class="ActionScriptComment">//     |- 垂直居中分布
+</span>        <span class="ActionScriptComment">//     |- 底部分布
+</span>        <span class="ActionScriptComment">//     |- 左侧分布
+</span>        <span class="ActionScriptComment">//     |- 水平居中分布
+</span>        <span class="ActionScriptComment">//     |- 右侧分布
+</span>        <span class="ActionScriptComment">//
+</span>        <span class="ActionScriptComment">//------------------------------------------------------------
+</span>        <span class="ActionScriptASDoc">/**
+         *  顶部分布。以显示对象上边缘为准，在最上边与最下边的显示对象之间平均分布所有显示对象。需要进行顶部分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeTopEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">topEdgeYArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 上边缘的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 topEdgeYArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptDefault_Text">topEdgeYArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">topEdgeYArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">topEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">topEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行顶部分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">topEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">topEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  垂直居中分布。以显示对象的垂直中横线为准，在最上边与最下边的显示对象之间平均分布所有显示对象。需要进行垂直居中分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeVerticalCenter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerYArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 垂直中横线的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 centerYArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 垂直中线的 y 坐标和 height 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">centerYArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">/</span> 2 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">centerYIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerYArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">centerYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行垂直居中分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">centerYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  底部分布。以显示对象下边缘为准，在最上边与最下边的显示对象之间平均分布所有显示对象。需要进行底部分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeBottomEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 下边缘的 y 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 bottomEdgeYArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 下边缘的 y 坐标和 height 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxY</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minY</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行底部分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">ty</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">bottomEdgeYArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">bottomEdgeYIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">yGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  左侧分布。以显示对象左边缘为准，在最左边与最右边的显示对象之间平均分布所有显示对象。需要进行左侧分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeLeftEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">leftEdgeXArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 左边缘的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 leftEdgeXArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 范围的 y 坐标。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptDefault_Text">leftEdgeXArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">leftEdgeXArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">leftEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">leftEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行顶部分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">leftEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">leftEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  水平居中分布。以显示对象的中垂线为准，在最左边与最右边的显示对象之间平均分布所有显示对象。需要进行水平居中分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeHorizonalCenter</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerXArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 中垂线的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 centerXArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 垂直中线的 x 坐标和 width 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">centerXArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">/</span> 2 <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">centerXIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerXArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">centerXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">centerXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行水平居中分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">centerXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">centerXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+        <span class="ActionScriptASDoc">/**
+         *  右侧分布。以显示对象右边缘为准，在最左边与最右边的显示对象之间平均分布所有显示对象。需要进行右侧分布操作的显示对象将包含在 targets 参数里。
+         *
+         *  @param targets 包含若干个显示对象的数组。
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">distributeRightEdge</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">:</span><span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">()</span>; <span class="ActionScriptComment">// 存放 targets 对应的 Rectangle 右边缘的 x 坐标。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Array</span>; <span class="ActionScriptComment">// 对 rightEdgeXArray 进行排序并保存对应的索引值，升序。
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xGap</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptComment">// 平均分布所需的间隔。
+</span>            
+            <span class="ActionScriptComment">// 轮询 targets，获取对应 Rectangle 右边缘的 x 坐标和 width 值。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">rect</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">pixelBounds</span>;
+                <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">rect</span>.<span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span>.<span class="ActionScriptDefault_Text">sort</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">NUMERIC</span> <span class="ActionScriptOperator">|</span> <span class="ActionScriptDefault_Text">Array</span>.<span class="ActionScriptDefault_Text">RETURNINDEXEDARRAY</span> <span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxX</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minX</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targets</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            
+            <span class="ActionScriptComment">// 移动显示对象，进行右侧分布操作。从第2个开始，到第 length - 1 个，第一个和最后一个不用移动。
+</span>            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span> <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">=</span> 1; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span>.<span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">-</span> 1; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span> <span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targets</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">m</span><span class="ActionScriptOperator">:</span><span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span>;
+                <span class="ActionScriptDefault_Text">m</span>.<span class="ActionScriptDefault_Text">tx</span> <span class="ActionScriptOperator">-=</span> <span class="ActionScriptDefault_Text">rightEdgeXArray</span><span class="ActionScriptBracket/Brace">[</span> <span class="ActionScriptDefault_Text">rightEdgeXIndexedArray</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">xGap</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">target</span>.<span class="ActionScriptDefault_Text">transform</span>.<span class="ActionScriptDefault_Text">matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">m</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        
+        
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

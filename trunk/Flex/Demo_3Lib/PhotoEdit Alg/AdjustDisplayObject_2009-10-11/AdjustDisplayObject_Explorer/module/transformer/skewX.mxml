@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	enterFrame="doSkew()"
+	width="100%"
+	height="100%"
+>
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.transformer.DisplayObjectTransformer;
+			
+			private function doSkew():void
+			{
+				DisplayObjectTransformer.skewX( img_src, 1 );
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+</mx:Module>

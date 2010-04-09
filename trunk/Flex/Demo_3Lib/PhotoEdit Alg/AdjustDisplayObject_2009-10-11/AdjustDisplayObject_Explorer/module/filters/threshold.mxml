@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.filters.DisplayObjectFilter;
+			import mx.controls.HSlider;
+			import mx.events.SliderEvent;
+			
+			private function onChange( event:SliderEvent ):void
+			{
+				var bmpData1:BitmapData = new BitmapData( img_src.width, img_src.height );
+				bmpData1.draw( img_src );
+				var bmpData2:BitmapData = DisplayObjectFilter.thresholdFilter( bmpData1, thresholdHS.value );
+				var bmp:Bitmap = new Bitmap( bmpData2 );
+				img_filter.source = bmp;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+	<mx:Image
+		id="img_filter"
+		width="260"
+		height="195"
+		x="476"
+		y="0"
+	/>
+	
+	<mx:HSlider
+		id="thresholdHS"
+		minimum="0"
+		maximum="255"
+		change="onChange( event )"
+		width="200"
+		labels="[阈值, ]"
+		liveDragging="true"
+		value="1"
+		x="268"
+		y="10"
+	/>
+	
+</mx:Module>
