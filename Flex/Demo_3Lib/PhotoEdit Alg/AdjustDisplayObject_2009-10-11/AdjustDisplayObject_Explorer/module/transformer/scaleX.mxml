@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	enterFrame="doScale()"
+	width="100%"
+	height="100%"
+>
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.transformer.DisplayObjectTransformer;
+			
+			private function doScale():void
+			{
+				var axis:String = "";
+				switch( comboBox.selectedItem.toString() )
+				{
+					case "左边缘":
+						axis = DisplayObjectTransformer.SCALE_AXIS_LEFT;
+						break;
+					case "水平中心轴":
+						axis = DisplayObjectTransformer.SCALE_AXIS_HORIZONAL_CENTER;
+						break;
+					case "右边缘":
+						axis = DisplayObjectTransformer.SCALE_AXIS_RIGHT;
+						break;
+				}
+				
+				DisplayObjectTransformer.scaleX( img_src, img_src.width - 1, axis );
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	 	x="146"
+	 	y="10"
+	 />
+	
+	<mx:ComboBox
+		id="comboBox"
+		dataProvider="['左边缘', '水平中心轴', '右边缘']"
+		x="10"
+		y="10"
+	/>
+	
+</mx:Module>

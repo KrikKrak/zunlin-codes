@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	enterFrame="doRotate()"
+	width="100%"
+	height="100%"
+>
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.transformer.DisplayObjectTransformer;
+			
+			private function doRotate():void
+			{
+				DisplayObjectTransformer.rotateAroundExternalPoint( img_src, temp.x, temp.y, 10 );
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+	<mx:Canvas
+		id="temp"
+		borderStyle="solid"
+		backgroundColor="#FFFFFF"
+		width="15"
+		height="15"
+		x="72"
+		y="78"
+		borderColor="#FF0000"
+		cornerRadius="20"
+		mouseDown="temp.startDrag()"
+		mouseUp="temp.stopDrag()"
+	/>
+	 
+	 <mx:Label text="拖动小方块" y="203" color="#FF0000"/>
+	
+</mx:Module>

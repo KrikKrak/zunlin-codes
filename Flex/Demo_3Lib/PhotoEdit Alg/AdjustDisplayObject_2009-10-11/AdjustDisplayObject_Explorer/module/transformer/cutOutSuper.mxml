@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+		]]>
+	</mx:Script>
+	
+	<mx:Button
+		label="裁剪图片的例子请到：http://www.riahome.cn/?p=298"
+		click="flash.net.navigateToURL( new URLRequest( 'http://www.riahome.cn/?p=298' ), '_blank' )"
+	/>
+	
+</mx:Module>

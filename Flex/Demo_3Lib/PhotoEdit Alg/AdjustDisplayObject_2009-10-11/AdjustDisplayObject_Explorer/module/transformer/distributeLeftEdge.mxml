@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.transformer.DisplayObjectTransformer;
+			
+			private function align():void
+			{
+				DisplayObjectTransformer.distributeLeftEdge( this.getChildren() );
+			}
+			
+			private function randomObj():void
+			{
+				for each( var i:DisplayObject in this.getChildren() )
+				{
+					i.x = this.width * Math.random();
+					i.y = this.height * Math.random();
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Panel title="www.sgu.gd.cn" width="139" height="98" x="238" y="41"/>
+	
+	<mx:Button label="Adobe Flash" x="20" y="97"/>
+	
+	<mx:Button label="Flex" x="160" y="127"/>
+	
+	<mx:Button label="www.RIAHome.cn" x="10" y="127"/>
+	
+	<mx:Button
+		label="重新分散"
+		x="146"
+		y="49"
+		width="84"
+		height="40"
+		click="randomObj()"
+		themeColor="#FF0000"
+		color="#FF0000"
+		highlightAlphas="[1, 1]"
+		fillAlphas="[1, 1, 1, 1]"
+	/>
+	
+	<mx:Button
+		label="左侧分布"
+		x="59"
+		y="10"
+		height="40"
+		click="align()"
+		themeColor="#00FF00"
+		color="#00FF00"
+		highlightAlphas="[1, 1]"
+		fillAlphas="[1, 1, 1, 1]"
+	/>
+	
+</mx:Module>

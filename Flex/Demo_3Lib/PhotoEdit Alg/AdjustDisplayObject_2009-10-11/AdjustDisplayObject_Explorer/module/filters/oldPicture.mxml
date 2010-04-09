@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.filters.DisplayObjectFilter;
+			
+			private function addFilter():void
+			{
+				var bmpData1:BitmapData = new BitmapData( img_src.width, img_src.height );
+				bmpData1.draw( img_src );
+				var bmpData2:BitmapData = DisplayObjectFilter.oldPictureFilter( bmpData1 );
+				var bmp:Bitmap = new Bitmap( bmpData2 );
+				img_filter.source = bmp;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+	<mx:Image
+		id="img_filter"
+		width="260"
+		height="195"
+		x="362"
+		y="0"
+	/>
+	
+	<mx:Button label="添加滤镜" click="addFilter()" x="268" y="10"/>
+	
+</mx:Module>

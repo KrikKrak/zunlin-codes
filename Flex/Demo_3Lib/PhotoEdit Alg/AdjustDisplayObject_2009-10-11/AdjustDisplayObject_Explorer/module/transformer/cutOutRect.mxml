@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+	
+	<mx:Script>
+		<![CDATA[
+			import cn.riahome.transformer.DisplayObjectTransformer;
+			
+			private function cut():void
+			{
+				temp.stopDrag();
+				
+				var bmpData:BitmapData = DisplayObjectTransformer.cutOutRect( img_src, temp.width, temp.height, temp.x, temp.y );
+				var bmp:Bitmap = new Bitmap( bmpData );
+				img_filter.source = bmp;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image
+		id="img_src"
+		source="assets/pic.jpg"
+		width="260"
+		height="195"
+	/>
+	
+	<mx:Canvas
+		id="temp"
+		borderStyle="solid"
+		backgroundColor="#FFFFFF"
+		alpha=".5"
+		width="100"
+		height="60"
+		x="72"
+		y="78"
+		borderColor="#FF0000"
+		mouseDown="temp.startDrag()"
+		mouseUp="cut()"
+	/>
+	
+	<mx:Image
+		id="img_filter"
+	 	width="100"
+	 	height="60"
+	 	x="268"
+	 	y="0"
+	 />
+	 
+	 <mx:Label text="拖动小方块" y="203" color="#FF0000"/>
+	
+</mx:Module>

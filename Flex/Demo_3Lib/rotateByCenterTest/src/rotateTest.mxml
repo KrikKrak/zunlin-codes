@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+
+	<mx:Script>
+		<![CDATA[
+			
+			private function rotateCav():void
+			{
+				var m:Matrix = cav.transform.matrix;
+				var p:Point = m.transformPoint(new Point(cav.width / 2, cav.height / 2));
+				m.translate(-p.x, -p.y);
+				m.rotate(Math.PI * hs.value / 180);
+				m.translate(p.x, p.y);
+				cav.transform.matrix = m;
+				//var p:Point = m.transformPoint(new Point(cav.x, cav.y));
+				//m.translate(p.x, p.y);
+				//trace(p);
+				//cav.transform.matrix = m;
+				//cav.x = p.x;
+				//cav.y = p.y;
+				
+				//cav.rotation = hs.value;
+			}
+			
+		]]>
+	</mx:Script>
+
+
+
+
+
+	<mx:HSlider id="hs" x="54" y="33" width="311" minimum="0" maximum="360" snapInterval="1" liveDragging="true" change="rotateCav()"/>
+	<mx:Canvas x="265" y="175" width="423" height="402" backgroundColor="#FF4343" borderStyle="solid" borderThickness="20" borderColor="#2AFF00" id="cav">
+	</mx:Canvas>
+	
+</mx:Application>
