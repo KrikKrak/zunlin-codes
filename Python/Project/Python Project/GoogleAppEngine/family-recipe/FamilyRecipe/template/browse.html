@@ -19,10 +19,10 @@
 <div id="page_frame" class="container_12 page_frame">
 	<h1>Browse recipes by filters</h1>
     
-    	<!--
+		<!--
         <input id="btnTest" type="button" value="test"/>
         -->
-        
+		
         <div id="search_panel" class="grid_4">
         
         	<div id="show_all_panel" class="grid_4">
@@ -81,10 +81,38 @@
     
     </div>
 	
-	<div id="dish_detail_panel" title="Dish detail">
-		<table id="dish_detail_table">
-		</table>
-	</div>
+	<div id="dish_detail_panel" title="Dish detail" class="hidePanel">
+		<table id="dish_detail_table" width="600" border="0" cellspacing="1" cellpadding="1">
+          <tr>
+            <td width="65">菜名：</td>
+            <td width="167" id="d_name"></td>
+            <td width="65">使用次数：</td>
+            <td width="162" id="d_count">&nbsp;</td>
+            <td width="40" rowspan="2">原料：</td>
+            <td width="82" rowspan="2" id="d_source">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>所属类别：</td>
+            <td id="d_category">&nbsp;</td>
+            <td>可用月份：</td>
+            <td id="d_month">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>菜属种类：</td>
+            <td id="d_type">&nbsp;</td>
+            <td>配菜：</td>
+            <td id="d_combine">&nbsp;</td>
+            <td rowspan="2">备注：</td>
+            <td rowspan="2" id="d_other">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>是否辛辣：</td>
+            <td id="d_hot">&nbsp;</td>
+            <td>等级：</td>
+            <td id="d_rate">&nbsp;</td>
+          </tr>
+        </table>
+    </div>
 
 </body>
 </html>
