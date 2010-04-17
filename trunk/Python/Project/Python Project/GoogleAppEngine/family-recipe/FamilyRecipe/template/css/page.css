@@ -54,3 +54,8 @@ select
 {
 	background-color: #FFC;
 }
+
+.hidePanel
+{
+	visibility:hidden;
+}

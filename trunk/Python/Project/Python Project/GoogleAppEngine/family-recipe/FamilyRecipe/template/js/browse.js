@@ -9,7 +9,7 @@ $(document).ready (function(){
 	
 	$("#btnTest").click (function()
 	{
-		$("#cb_type").attr("disabled", "true");
+		$("#d_name").text("abc");
 	})
 	
 	// hook up listener for filter
@@ -101,17 +101,6 @@ $(document).ready (function(){
 		
 		// add table row click listener
 		$("#result_table tr").click(dishClick);
-	}
-	
-	// this function is used to remove "<![[CDATA]]>"
-	function formatString(str)
-	{
-		var s = "";
-		for (var i = 9; i < str.length - 3; ++i)
-		{
-			s += str[i];
-		}
-		return s;
 	}
 	
 	function updateDishs()
@@ -217,27 +206,103 @@ $(document).ready (function(){
 		var dish = $(dishXML).find("Dish").eq(t.rowIndex - 1);
 		var dishName = $(dish).children("DishName");
 		var dnTxt = formatString(dishName.text());
-		var rate = $(dish).children("Rate");
-		var category = $(dish).children("Category");
-		var dishType = $(dish).children("DishType");
-		var usedTimes = $(dish).children("UsedTimes");
-		var createDate = $(dish).children("CreateDate");
+		var rate = $(dish).children("Rate").text();
+		var category = $(dish).children("Category").text();
+		var dishType = $(dish).children("DishType").text();
+		var usedTimes = $(dish).children("UsedTimes").text();
+		var isHot = $(dish).children("IsHot").text();
+		var otherNote = $(dish).children("OtherNotes").text();
+		otherNote = formatString(otherNote);
+		var s = combineArray(dish, "Season", getSeason);
+		var c = combineArray(dish, "Content");
+		var n = combineArray(dish, "Name");
+
+		$("#d_name").text(dnTxt);
+		$("#d_category").text(category);
+		$("#d_type").text(dishType);
+		$("#d_hot").text((isHot == "true") ? "是" : "否");
+		$("#d_count").text(usedTimes);
+		$("#d_month").text(s);
+		$("#d_combine").text(n);
+		$("#d_rate").text(rate);
+		$("#d_source").text(c);
+		$("#d_other").text(otherNote);
 		
-		var t = "<tr><td>" + dnTxt + "</td><td>"
-							+ rate.text() + "</td><td>"
-							+ category.text() + "</td><td>"
-							+ dishType.text() + "</td><td>"
-							+ usedTimes.text() + "</td><td>"
-							+ createDate.text() + "</td></tr>";
-		
-		$("#dish_detail_table tr").remove();				
-		$("#dish_detail_table").append(t);
 		openDishDetail();
 	}
 	
 	function removeExistingContents()
 	{
 		$("#result_table").remove();
+	}
+	
+	function openDishDetail()
+	{
+		$("#dish_detail_panel").removeClass("hidePanel");
+		$("#dish_detail_panel").bind("dialogbeforeclose", beforeDishClose);
+		$("#dish_detail_panel").dialog({autoOpen: false, resizable: false, width: 620});
+		$("#dish_detail_panel").dialog("option", "modal", true);
+		$("#dish_detail_panel").dialog("open");
+	}
+	
+	function beforeDishClose(event, ui)
+	{
+		// TODO: update dish detail
+	}
+	
+	// ======================================
+	// [HELP FUNCTION]
+	
+	// this function is used to remove "<![[CDATA]]>"
+	function formatString(str)
+	{
+		if (str[0] == "<" && str[5] == "A")
+		{
+			var s = "";
+			for (var i = 9; i < str.length - 3; ++i)
+			{
+				s += str[i];
+			}
+			return s;
+		}
+		else
+		{
+			return str;
+		}
+	}
+	
+	function combineArray(val, tag, otherFn)
+	{
+		//var sArray = [];
+		var s = "";
+		val.find(tag).each(function(i){
+			//sArray.push($(this).text());
+			var t = formatString($(this).text());
+			if (otherFn != undefined) t = otherFn(t);
+			s += t + " ";
+		})
+		s = $.trim(s);
+		return s;
+	}
+	
+	function getSeason(m)
+	{
+		if (m == "1")
+		{
+			return "春";
+		}
+		if (m == "2")
+		{
+			return "夏";
+		}
+		if (m == "3")
+		{
+			return "秋";
+		}
+		if (m == "4")
+		{
+			return "冬";
+		}
 	}
 	
 	function printObj(obj)
@@ -248,19 +313,6 @@ $(document).ready (function(){
 			var t = "<tr><td>" + v + "</td><td>" + obj[v] + "</td><td>";			
 			$("#objDetail").append(t);
 		}
-	}
-	
-	function openDishDetail()
-	{
-		$("#dish_detail_panel").bind("dialogbeforeclose", beforeDishClose);
-		$("#dish_detail_panel").dialog({autoOpen: false});
-		$("#dish_detail_panel").dialog("option", "modal", true);
-		$("#dish_detail_panel").dialog("open");
-	}
-	
-	function beforeDishClose(event, ui)
-	{
-		// TODO: update dish detail
 	}
 	
 })

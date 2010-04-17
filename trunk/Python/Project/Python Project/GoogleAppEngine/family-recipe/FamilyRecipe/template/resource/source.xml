@@ -176,9 +176,6 @@
         <Content>&lt;![CDATA[粉皮]]&gt;</Content>
       </Contents>
     </Dish>
-    
-	<!--
-	
 	<Dish>
       <id>597D3E99E7E3A3AAB4E1E67C274BC038E73985B6</id>
       <DishName>&lt;![CDATA[红烧鳝背]]&gt;</DishName>
@@ -3928,8 +3925,5 @@
         <Content>&lt;![CDATA[鸡胗]]&gt;</Content>
       </Contents>
     </Dish>
-	
-	-->
-	
   </Dishs>
 </FamilyMenu>
