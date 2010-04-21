@@ -15,7 +15,6 @@ class Welcome(webapp.RequestHandler):
       
 class BrowseRecipe(webapp.RequestHandler):
     def get(self):
-        #self.response.out.write("This is a test page for BrowseRecipe service used by client.")
         template_value = {"pageTitle": "Browse Family Recipes"}
         path = os.path.join(os.path.dirname(__file__), "template/browse.html")
         self.response.out.write(template.render(path, template_value))
@@ -42,9 +41,11 @@ class BrowseRecipe(webapp.RequestHandler):
         self.response.out.write("status: %s, detail: %s" % ("success", userIp))
 
 class AddRecipe(webapp.RequestHandler):
-	def get(self):
-		self.response.out.write("This is a test page for AddRecipe service used by client.")
-    
+    def get(self):
+        template_value = {"pageTitle": "Add New Recipes"}
+        path = os.path.join(os.path.dirname(__file__), "template/add.html")
+        self.response.out.write(template.render(path, template_value))	
+
 #		userIp = db.StringProperty()
 #	    feeling = db.StringProperty()
 #	    name = db.StringProperty()
