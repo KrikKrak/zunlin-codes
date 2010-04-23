@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="css/smoothness/jquery-ui-1.7.2.custom.css"/>
     <link rel="stylesheet" href="css/960.css"/>
 	<link rel="stylesheet" href="css/uni-form.css"/>
+	<link rel="stylesheet" href="css/add_page.css"/>
     
     <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
@@ -18,18 +19,14 @@
 <body>
 	
 <div id="page_frame" class="container_12 page_frame">
-	<h1>Add new recipe here</h1>
-	
 
-	<!--
-    <input id="btnTest" type="button" value="test"/>
-    -->
-	
 	<div id="page_frame" class="grid_2">
 		<p>  </p>
 	</div>
 	
 	<div id="page_frame" class="grid_8">
+		<h1>开始添加新菜</h1>
+
 		<form id="form_basic_info" action="/" class="uniForm">
 		
 			<fieldset class="inlineLabels">
@@ -37,7 +34,7 @@
 				
 				<div class="ctrlHolder">
 					<label for="ip_name">菜名：</label>
-					<input name="ip_name" type="text" class="textInputsmall" id="ip_name" value="" maxlength="50"/>
+					<input name="ip_name" type="text" class="textInput large" id="ip_name" value="" maxlength="50"/>
 				</div>
 				
 				<div class="ctrlHolder">
@@ -75,7 +72,7 @@
 				
 				<div class="ctrlHolder">
 					<label for="ip_count">使用次数：</label>
-					<input name="ip_count" type="text" id="ip_count" class="textInputsmall" value="1" maxlength="50"/>
+					<input name="ip_count" type="text" id="ip_count" class="textInput auto" value="1" maxlength="50"/>
 				</div>
 				
 				<div class="ctrlHolder">
@@ -86,15 +83,15 @@
 							<span>春</span>
 						</label>
 						<label for="ip_summer" class="inlineLabel">
-							<input type="checkbox" name="ip_summer" value="2" id="ip_summer" checked="checked"/>
+							<input type="checkbox" name="ip_summer" value="1" id="ip_summer" checked="checked"/>
 							<span>夏</span>
 						</label>
 						<label for="ip_fall" class="inlineLabel">
-							<input type="checkbox" name="ip_fall" value="3" id="ip_fall" checked="checked"/>
+							<input type="checkbox" name="ip_fall" value="1" id="ip_fall" checked="checked"/>
 							<span>秋</span>
 						</label>
 						<label for="ip_winter" class="inlineLabel">
-							<input type="checkbox" name="ip_winter" value="4" id="ip_winter" checked="checked"/>
+							<input type="checkbox" name="ip_winter" value="1" id="ip_winter" checked="checked"/>
 							<span>冬</span>
 						</label>
 					</div>
@@ -102,7 +99,10 @@
 				
 				<div class="ctrlHolder">
 					<label for="ip_combine">配菜：</label>
-					<textarea name="ip_combine" id="ip_combine" rows="2" cols="45"></textarea>
+					<textarea class="narrTxtArea" style="height: 35px" name="ip_combine" id="ip_combine"></textarea>
+					<p class="formHint">
+						<span>使用空格分隔</span>
+					</p>
 				</div>
 				
 				<div class="ctrlHolder">
@@ -137,18 +137,21 @@
 				
 				<div class="ctrlHolder">
 					<label for="ip_source">原料：</label>
-					<textarea name="ip_source" id="ip_source" cols="45" rows="5"></textarea>
+					<textarea name="ip_source" id="ip_source"></textarea>
+					<p class="formHint">
+						<span>使用空格分隔</span>
+					</p>
 				</div>
 				
 				<div class="ctrlHolder">
 					<label for="ip_other">备注：</label>
-					<textarea name="ip_other" id="ip_other" cols="45" rows="5"></textarea>
+					<textarea name="ip_other" id="ip_other"></textarea>
 				</div>
 			</fieldset>
 			
 			<div class="buttonHolder">
-				<button type="reset" class="secondaryAction">Reset</button>
-				<button type="submit" class="primaryAction">Submit</button>
+				<button type="reset" class="secondaryAction">清空</button>
+				<button type="submit" class="primaryAction">提交</button>
 			</div>
 	
 		</form>
