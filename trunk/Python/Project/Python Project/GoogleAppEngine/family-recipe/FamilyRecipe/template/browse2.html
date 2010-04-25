@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link rel="stylesheet" href="css/smoothness/jquery-ui-1.7.2.custom.css"/>
+    <link rel="stylesheet" href="css/960.css"/>
+    <link rel="stylesheet" href="css/page.css"/>
+    
+    <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
+	<script type="text/javascript" src="js/labs_json.js"></script>
+    <script type="text/javascript" src="js/browse2.js"></script>
+    
+	<title> {{pageTitle}} </title>
+</head>
+
+<body>
+
+<div id="page_frame" class="container_12 page_frame">
+	<h1>Browse recipes by filters</h1>
+
+	<!--
+    <input id="btnTest" type="button" value="test"/>
+    -->
+	
+    <div id="search_panel" class="grid_4">
+    
+    	<div id="show_all_panel" class="grid_4">
+            <input id="ip_show_all" name="Show All" type="checkbox" value="show_all" checked/>显示全部
+        </div>
+        
+        <div id="type_panel" class="grid_4">
+			<h3>所属类别</h3>
+			<select id="cb_type">
+                <option value="all" selected="selected">全部</option>
+                <option value="冷盆">冷盆</option>
+                <option value="热炒">热炒</option>
+                <option value="点心">点心</option>
+                <option value="汤">汤</option>
+                <option value="炖菜">炖菜</option>
+                <option value="主食">主食</option>
+          	</select>
+      	</div>
+        
+        <div id="season_panel" class="grid_4">
+        	<h3>可用季节</h3>
+            <select id="cb_season">
+                <option value="all" selected="selected">全部</option>
+                <option value="1">春</option>
+                <option value="2">夏</option>
+                <option value="3">秋</option>
+                <option value="4">冬</option>
+          	</select>
+        </div>
+        
+        <div id="rate_panel" class="grid_4">
+        	<h3>等级</h3>
+            <select id="cb_rate">
+                <option value="all" selected="selected">全部</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+				<option value="5">5</option>
+          	</select>
+        </div>
+
+        <div class="grid_4">
+        	<h1>  </h1>
+        </div>
+		
+		<div class="grid_4">
+			<h1>
+        		<a href="/add">添加新菜 New Recipe</a>
+			</h1>
+        </div>
+		
+	</div>
+    
+    <div id="result_panel" class="grid_8">
+		<h2>Recipes are listed here:</h2>
+        
+		<table id="result_table" width="620" border="1">
+          <!-- DISH detail will be added by JS -->
+		</table>
+    </div>
+
+</div>
+
+<div id="dish_detail_panel" title="Dish detail" class="hidePanel">
+	<table id="dish_detail_table" width="600" border="0" cellspacing="1" cellpadding="1">
+      <tr>
+        <td width="65">菜名：</td>
+        <td width="167" id="d_name"></td>
+        <td width="65">使用次数：</td>
+        <td width="162" id="d_count">&nbsp;</td>
+        <td width="40" rowspan="2">原料：</td>
+        <td width="82" rowspan="2" id="d_source">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>所属类别：</td>
+        <td id="d_category">&nbsp;</td>
+        <td>可用月份：</td>
+        <td id="d_month">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>菜属种类：</td>
+        <td id="d_type">&nbsp;</td>
+        <td>配菜：</td>
+        <td id="d_combine">&nbsp;</td>
+        <td rowspan="2">备注：</td>
+        <td rowspan="2" id="d_other">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>是否辛辣：</td>
+        <td id="d_hot">&nbsp;</td>
+        <td>等级：</td>
+        <td id="d_rate">&nbsp;</td>
+      </tr>
+    </table>
+</div>
+
+</body>
+</html>

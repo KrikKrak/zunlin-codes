@@ -1,11 +1,13 @@
 /* CUSTOM PANEL UI STYLE */
 
-.narrTxtArea
+#ip_combine
 {
 	height: 35px;
 }
 
-.normalTxtArea
+.errorElement
 {
-	height: 50px;
+	
 }
+
+.error{ background: #ffdfdf; border: 1px solid #df7d7d; border-width: 1px 0; }
