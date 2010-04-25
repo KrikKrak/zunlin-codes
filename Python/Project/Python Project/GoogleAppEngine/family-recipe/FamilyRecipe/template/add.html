@@ -7,10 +7,12 @@
     <link rel="stylesheet" href="css/960.css"/>
 	<link rel="stylesheet" href="css/uni-form.css"/>
 	<link rel="stylesheet" href="css/add_page.css"/>
+	<link rel="stylesheet" href="css/screen.css"/>
     
     <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
 	<script type="text/javascript" src="js/uni-form.jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.validate.js"></script>
     <script type="text/javascript" src="js/add.js"></script>
 	
 	<title> {{pageTitle}} </title>
@@ -26,15 +28,16 @@
 	
 	<div id="page_frame" class="grid_8">
 		<h1>开始添加新菜</h1>
+		<h1 id="errorHead" class="error">请正确填写内容后再提交</h1>
 
-		<form id="form_basic_info" action="/" class="uniForm">
+		<form id="form_basic_info" action="/postnew" method="post" class="uniForm">
 		
 			<fieldset class="inlineLabels">
 				<legend>基本信息</legend>
 				
 				<div class="ctrlHolder">
 					<label for="ip_name">菜名：</label>
-					<input name="ip_name" type="text" class="textInput large" id="ip_name" value="" maxlength="50"/>
+					<input name="ip_name" type="text" class="textInput large required" id="ip_name" value="" maxlength="50"/>
 				</div>
 				
 				<div class="ctrlHolder">
@@ -99,7 +102,7 @@
 				
 				<div class="ctrlHolder">
 					<label for="ip_combine">配菜：</label>
-					<textarea class="narrTxtArea" style="height: 35px" name="ip_combine" id="ip_combine"></textarea>
+					<textarea name="ip_combine" id="ip_combine"></textarea>
 					<p class="formHint">
 						<span>使用空格分隔</span>
 					</p>
@@ -113,19 +116,19 @@
 							<span>1</span>
 						</label>
 						<label for="ip_r2" class="inlineLabel">
-							<input type="radio" name="ip_r" value="1" id="ip_r2"/>
+							<input type="radio" name="ip_r" value="2" id="ip_r2"/>
 							<span>2</span>
 						</label>
 						<label for="ip_r3" class="inlineLabel">
-							<input type="radio" name="ip_r" value="1" id="ip_r3"/>
+							<input type="radio" name="ip_r" value="3" id="ip_r3"/>
 							<span>3</span>
 						</label>
 						<label for="ip_r4" class="inlineLabel">
-							<input type="radio" name="ip_r" value="1" id="ip_r4"/>
+							<input type="radio" name="ip_r" value="4" id="ip_r4"/>
 							<span>4</span>
 						</label>
 						<label for="ip_r5" class="inlineLabel">
-							<input type="radio" name="ip_r" value="1" id="ip_r5"/>
+							<input type="radio" name="ip_r" value="5" id="ip_r5"/>
 							<span>5</span>
 						</label>
 					</div>
