@@ -45,9 +45,28 @@ $(document).ready (function(){
 		updateDishs();
 	})
 	
+	$("#btnNextPage").click (function()
+	{
+		var d = curFilter;
+		if (curFilter != "")
+		{
+			d += "&";
+		}
+		d += "fromidx=" + (fromIdx + curFetchLengh) + "&len=" + 10;
+		
+		// update dishs to table
+		$("#result_table tr").remove();
+
+		loadData(d);
+	})
+	
 	// var define
-	var dishXML;
 	var result_table_head_str = "<tr><th width='200' scope='col'>菜名</th><th width='80' scope='col'>类别</th><th width='80' scope='col'>种类</th><th width='160' scope='col'>级别</th><th width='80' scope='col'>使用次数</th></tr>";
+	
+	var dataCount = 0;
+	var fromIdx = 0;
+	var curFetchLengh = 0;
+	var curFilter = "";
 	
 	// disable all select options
 	$("#cb_type").attr("disabled", "true");
@@ -55,28 +74,35 @@ $(document).ready (function(){
 	$("#cb_rate").attr("disabled", "true");
 	
 	// load xml file
-	loadXMLFile();
+	loadData();
 
 	// work function
-	function loadXMLFile()
+	function loadData(d)
 	{
 		$.ajax({
 			type: "GET",
 			url: "/postnew",
-			data: "",
+			data: d,
 			success: dataLoaded
 		})
 	}
 	
 	function dataLoaded(data)
 	{
+		$("#nextBtn_panel").hide();
 		// add talbe head
 		$("#result_table").append(result_table_head_str);
+		if (data == "error") return;
 		
 		var obj = $.json.decode(data)
-		for (var i in obj)
+		dataCount = obj["count"];
+		fromIdx = obj["start"];
+		curFetchLengh = obj["length"];
+
+		var i = 0;
+		for (var i in obj["data"])
 		{
-			var r = obj[i];
+			var r = obj["data"][i];
 			
 			var dishName = r.name;
 			var category = r.category;
@@ -91,6 +117,13 @@ $(document).ready (function(){
 								+ usedTimes + "</td></tr>";
 								
 			$("#result_table").append(t);
+			
+			i++;
+		}
+		
+		if (fromIdx + curFetchLengh < dataCount)
+		{
+			$("#nextBtn_panel").show();
 		}
 		
 		// format table to make it a little nicer
@@ -102,96 +135,43 @@ $(document).ready (function(){
 	
 	function updateDishs()
 	{
-		return;
 		// find related dishs
 		var d;
 		if ($("#ip_show_all")[0].checked == true)
 		{
-			d = $(dishXML).find("Dish");
+			d = "";
 		}
 		else
 		{
-			d = chooseDishs($("#cb_type")[0].value, $("#cb_season")[0].value, $("#cb_rate")[0].value);
-			//alert("Filter dish by " + $("#cb_type")[0].value + ", " + $("#cb_season")[0].value + ", " + $("#cb_rate")[0].value + ", result: " + d.length);
+			d = getFilterString($("#cb_type")[0].value, $("#cb_season")[0].value, $("#cb_rate")[0].value);
 		}
 		
 		// update dishs to table
 		$("#result_table tr").remove();
 		
-		// add talbe head
-		$("#result_table").append(result_table_head_str);
-			
-		// add dishs
-		for (var i = 0; i < d.length; ++i)
-		{
-			var dishName = $(d[i]).children("DishName");
-			var dnTxt = formatString(dishName.text());
-			var category = $(d[i]).children("Category");
-			var dishType = $(d[i]).children("DishType");
-			var rate = $(d[i]).children("Rate");
-			var usedTimes = $(d[i]).children("UsedTimes");
-			
-			var t = "<tr><td>" + dnTxt + "</td><td>"
-								+ category.text() + "</td><td>"
-								+ dishType.text() + "</td><td>"
-								+ rate.text() + "</td><td>"
-								+ usedTimes.text() + "</td></tr>";
-								
-			$("#result_table").append(t);
-		}
-		
-		// format table to make it a little nicer
-		$("#result_table tr:odd").css("background-color", "#CCCCCC");
-		
-		// add table row click listener
-		$("#result_table tr").click(dishClick);
+		curFilter = d;
+		loadData(d);
 	}
 	
-	function chooseDishs(type, season, rate)
+	function getFilterString(type, season, rate)
 	{
-		var d = [];
-		$(dishXML).find("Dish").each(function(i){
-			var category = $(this).children("Category");
-			var ratevalue = $(this).children("Rate");
-			
-			// get season inside the Dish tag
-			var sArray = [];
-			$(this).find("Season").each(function(i){
-				sArray.push($(this).text());
-			})
-			
-			var typeok = true;
-			if (type != "all")
-			{
-				typeok = (category.text() == type);
-			}
-			
-			var seasonok = true;
-			if (season != "all")
-			{
-				seasonok = false;
-				for (var i = 0; i < sArray.length; ++i)
-				{
-					if (sArray[i] == season)
-					{
-						seasonok = true;
-						break;
-					}
-				}
-			}
-			
-			var rateok = true;
-			if (rate != "all")
-			{
-				rateok = (ratevalue.text() == rate);
-			}
-			
-			if (typeok == true && seasonok == true && rateok == true)
-			{
-				d.push(this);
-			}
-		});
-		return d;
+		var s = "";
+		if (type != "all")
+		{
+			s = "cat=" + type;
+		}
+		
+		if (season != "all")
+		{
+			s += "&season=" + season;
+		}
+		
+		if (rate != "all")
+		{
+			s += "&rate=" + rate;
+		}
+
+		return s;
 	}
 	
 	function dishClick(e)

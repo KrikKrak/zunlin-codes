@@ -9,3 +9,99 @@ indexes:
 # manually, move them above the marker line.  The index.yaml file is
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
+
+- kind: RecipeModel
+  properties:
+  - name: category
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: category
+  - name: rate
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: category
+  - name: rate
+  - name: sprint
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: category
+  - name: sprint
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: category
+  - name: summer
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: fall
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: name
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: name=
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: rate
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: rate
+  - name: type
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: rate<=
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: sprint
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: summer
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: type
+  - name: createDate
+    direction: desc
+
+- kind: RecipeModel
+  properties:
+  - name: winter
+  - name: createDate
+    direction: desc
