@@ -28,7 +28,7 @@ class BrowseRecipe2(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_value))
 
 class DelAllRecords(webapp.RequestHandler):
-    def get(self):
+    def post(self):
         d = self.request.get("del")
         if (d != "yes"):
             return
@@ -39,29 +39,35 @@ class DelAllRecords(webapp.RequestHandler):
         db.delete(r)
         
 class RemoveRecipe(webapp.RequestHandler):
-    def get(self):
+    def post(self):
         key = self.request.get("key")
         if key:
-            recipe = db.get(key)
-            if (recipe):
+            try:
+                recipe = db.get(key)
                 recipe.delete()
                 self.response.out.write("done")
-            else:
+            except:
                 self.response.out.write("error")
         
 class PostRecipe(webapp.RequestHandler):
     def get(self):
+        results = {}
+        f = 0;
+        l = 10;
+        
         # get key first
         key = self.request.get("key")
         
         # filter key
         if key:
-            recipe = db.get(key)
-            if (not recipe):
+            try:
+                recipe = db.get(key)
+            except:
                 self.response.out.write("error")
                 return
                 
             recipes = [recipe]
+            results["count"] = 1
         else:
             # get params
             name = self.request.get("name")
@@ -104,23 +110,20 @@ class PostRecipe(webapp.RequestHandler):
             else:
                 query.order("-createDate")
             # get result
-            f = 0;
-            l = 10;
             if fromidx:
                 f = string.atoi(fromidx)
             if len:
                 l = string.atoi(len)
             
             recipes = query.fetch(l, f)
+            results["count"] = query.count(1000)
 
             if (not recipes):
                 self.response.out.write("error")
                 return
 
         #recipes = db.GqlQuery("SELECT * FROM RecipeModel ORDER BY name LIMIT 10")
-        
-        results = {}
-        results["count"] = query.count(1000)
+
         results["start"] = f
         results["length"] = l
         data = {}

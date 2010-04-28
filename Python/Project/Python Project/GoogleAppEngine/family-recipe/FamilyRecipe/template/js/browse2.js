@@ -7,10 +7,12 @@ $(document).ready (function(){
 	/* put page init function here */
 	//alert("page load...");
 	
+	/*
 	$("#btnTest").click (function()
 	{
 		$("#d_name").text("abc");
 	})
+	*/
 	
 	// hook up listener for filter
 	$("#ip_show_all").click (function()
@@ -60,6 +62,20 @@ $(document).ready (function(){
 		loadData(d);
 	})
 	
+	$("#btnEdit").click (function()
+	{
+		
+	})
+	
+	$("#btnDel").click (function()
+	{
+		var d = confirm("确认删除?");
+		if (d == true)
+		{
+			removeRecipe(curDetailKey);
+		}
+	})
+	
 	// var define
 	var result_table_head_str = "<tr><th width='200' scope='col'>菜名</th><th width='80' scope='col'>类别</th><th width='80' scope='col'>种类</th><th width='160' scope='col'>级别</th><th width='80' scope='col'>使用次数</th></tr>";
 	
@@ -67,6 +83,9 @@ $(document).ready (function(){
 	var fromIdx = 0;
 	var curFetchLengh = 0;
 	var curFilter = "";
+	
+	var localData = [];
+	var curDetailKey = "";
 	
 	// disable all select options
 	$("#cb_type").attr("disabled", "true");
@@ -94,6 +113,8 @@ $(document).ready (function(){
 		$("#result_table").append(result_table_head_str);
 		if (data == "error") return;
 		
+		localData.splice(0, localData.length);
+		
 		var obj = $.json.decode(data)
 		dataCount = obj["count"];
 		fromIdx = obj["start"];
@@ -119,6 +140,7 @@ $(document).ready (function(){
 			$("#result_table").append(t);
 			
 			i++;
+			localData.push(r.id);
 		}
 		
 		if (fromIdx + curFetchLengh < dataCount)
@@ -130,7 +152,7 @@ $(document).ready (function(){
 		$("#result_table tr:odd").css("background-color", "#CCCCCC");
 		
 		// add table row click listener
-		//$("#result_table tr").click(dishClick);
+		$("#result_table tr").click(dishClick);
 	}
 	
 	function updateDishs()
@@ -179,39 +201,44 @@ $(document).ready (function(){
 		e.stopPropagation();
 		var t = e.currentTarget;
 		if (t.rowIndex == 0) return;
-		
-		// find selected dish from xml
-		var dish = $(dishXML).find("Dish").eq(t.rowIndex - 1);
-		var dishName = $(dish).children("DishName");
-		var dnTxt = formatString(dishName.text());
-		var rate = $(dish).children("Rate").text();
-		var category = $(dish).children("Category").text();
-		var dishType = $(dish).children("DishType").text();
-		var usedTimes = $(dish).children("UsedTimes").text();
-		var isHot = $(dish).children("IsHot").text();
-		var otherNote = $(dish).children("OtherNotes").text();
-		otherNote = formatString(otherNote);
-		var s = combineArray(dish, "Season", getSeason);
-		var c = combineArray(dish, "Content");
-		var n = combineArray(dish, "Name");
-
-		$("#d_name").text(dnTxt);
-		$("#d_category").text(category);
-		$("#d_type").text(dishType);
-		$("#d_hot").text((isHot == "true") ? "是" : "否");
-		$("#d_count").text(usedTimes);
-		$("#d_month").text(s);
-		$("#d_combine").text(n);
-		$("#d_rate").text(rate);
-		$("#d_source").text(c);
-		$("#d_other").text(otherNote);
-		
-		openDishDetail();
+		curDetailKey = localData[t.rowIndex - 1];
+		getDetailbyKey(curDetailKey);
 	}
 	
-	function removeExistingContents()
+	function getDetailbyKey(key)
 	{
-		$("#result_table").remove();
+		$.ajax({
+			type: "GET",
+			url: "/postnew",
+			data: "key=" + key,
+			success: getDetailbyKeyResult
+		})
+	}
+	
+	function getDetailbyKeyResult(data)
+	{
+		if (data == "error") return;
+		
+		var obj = $.json.decode(data)
+		for (var i in obj["data"])
+		{
+			// there should be only one item here
+			var r = obj["data"][i];
+
+			$("#d_name").text(r.name);
+			$("#d_category").text(r.category);
+			$("#d_type").text(r.type);
+			$("#d_hot").text((r.hot == true) ? "是" : "否");
+			$("#d_count").text(r.count);
+			$("#d_month").text(getSeason(r.sprint, r.summer, r.fall, r.winter));
+			$("#d_combine").text(r.combine);
+			$("#d_rate").text(r.rate);
+			$("#d_source").text(r.source);
+			$("#d_other").text(r.other);
+			
+			break;
+		}
+		openDishDetail();
 	}
 	
 	function openDishDetail()
@@ -228,59 +255,54 @@ $(document).ready (function(){
 		// TODO: update dish detail
 	}
 	
+	function removeRecipe(key)
+	{
+		$.ajax({
+			type: "POST",
+			url: "/delete",
+			data: "key=" + key,
+			success: removeRecipeResult
+		})
+	}
+	
+	function removeRecipeResult(data)
+	{
+		if (data == "done")
+		{
+			// close the detail dialog
+			$("#dish_detail_panel").dialog("close");
+			// re-search the result
+			updateDishs();
+		}
+		else if (data == "error")
+		{
+			alert("error");
+		}
+	}
+	
 	// ======================================
 	// [HELP FUNCTION]
 	
-	// this function is used to remove "<![[CDATA]]>"
-	function formatString(str)
+	function getSeason(sp, su, fa, wi)
 	{
-		if (str[0] == "<" && str[5] == "A")
-		{
-			var s = "";
-			for (var i = 9; i < str.length - 3; ++i)
-			{
-				s += str[i];
-			}
-			return s;
-		}
-		else
-		{
-			return str;
-		}
-	}
-	
-	function combineArray(val, tag, otherFn)
-	{
-		//var sArray = [];
 		var s = "";
-		val.find(tag).each(function(i){
-			//sArray.push($(this).text());
-			var t = formatString($(this).text());
-			if (otherFn != undefined) t = otherFn(t);
-			s += t + " ";
-		})
-		s = $.trim(s);
+		if (sp == true)
+		{
+			s += "春";
+		}
+		if (su == true)
+		{
+			s += " 夏";
+		}
+		if (fa == true)
+		{
+			s += " 秋";
+		}
+		if (wi == true)
+		{
+			s += " 冬";
+		}
 		return s;
-	}
-	
-	function getSeason(m)
-	{
-		if (m == "1")
-		{
-			return "春";
-		}
-		if (m == "2")
-		{
-			return "夏";
-		}
-		if (m == "3")
-		{
-			return "秋";
-		}
-		if (m == "4")
-		{
-			return "冬";
-		}
 	}
 	
 	function printObj(obj)
