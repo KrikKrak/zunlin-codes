@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link rel="stylesheet" href="css/smoothness/jquery-ui-1.7.2.custom.css"/>
+    <link rel="stylesheet" href="css/960.css"/>
+	<link rel="stylesheet" href="css/uni-form.css"/>
+	<link rel="stylesheet" href="css/edit_page.css"/>
+	<link rel="stylesheet" href="css/screen.css"/>
+    
+    <script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
+	<script type="text/javascript" src="js/uni-form.jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.validate.js"></script>
+    <script type="text/javascript" src="js/edit.js"></script>
+	
+	<title> {{pageTitle}} </title>
+</head>
+
+<body>
+	
+<div id="page_frame" class="container_12 page_frame">
+
+	<div id="page_frame" class="grid_2">
+		<p>  </p>
+	</div>
+	
+	<div id="page_frame" class="grid_8">
+		<h1 id="errorHead" class="error">请正确填写内容后再提交</h1>
+
+		<form id="form_basic_info" action="/edit" method="post" d class="uniForm">
+		
+			<fieldset class="inlineLabels">
+				<legend>基本信息</legend>
+				<input name="ip_key" type="text" value="{{id}}" style="visibility:hidden;" id="ip_key"/>
+				<div class="ctrlHolder">
+					<label for="ip_name">菜名：</label>
+					<input name="ip_name" type="text" value="{{recipeName}}" class="textInput large required" id="ip_name" maxlength="50"/>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_category">所属类别：</label>
+					<select name="ip_category" id="ip_category" class="selectInput">
+	               		<option value="冷盆">冷盆</option>
+	                    <option value="热炒">热炒</option>
+	                    <option value="点心">点心</option>
+	                    <option value="汤">汤</option>
+	                    <option value="炖菜">炖菜</option>
+	                    <option value="主食">主食</option>
+	                    <option value="其他">其他</option>
+	               </select>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_type">菜属种类：</label>
+					<select name="ip_type" id="ip_type" class="selectInput">
+	                	<option value="大荤">大荤</option>
+	                    <option value="小荤">小荤</option>
+	                    <option value="禽类">禽类</option>
+	                    <option value="水产品">水产品</option>
+	                    <option value="肉类">肉类</option>
+	                    <option value="海鲜">海鲜</option>
+	                    <option value="蔬菜">蔬菜</option>
+	                    <option value="其他">其他</option>
+					</select>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_hot">是否辛辣：</label>
+					<input type="checkbox" name="ip_hot" id="ip_hot" value="1" checked="checked"/>
+					<span>Yes</span>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_count">使用次数：</label>
+					<input name="ip_count" type="text" value="{{useCount}}" id="ip_count" class="textInput auto" maxlength="50"/>
+				</div>
+				
+				<div class="ctrlHolder">
+					<p class="label">可用月份：</p>
+					<div class="multiField">
+						<label for="ip_sprint" class="inlineLabel">
+							<input type="checkbox" name="ip_sprint" value="1" id="ip_sprint" checked="checked"/>
+							<span>春</span>
+						</label>
+						<label for="ip_summer" class="inlineLabel">
+							<input type="checkbox" name="ip_summer" value="1" id="ip_summer" checked="checked"/>
+							<span>夏</span>
+						</label>
+						<label for="ip_fall" class="inlineLabel">
+							<input type="checkbox" name="ip_fall" value="1" id="ip_fall" checked="checked"/>
+							<span>秋</span>
+						</label>
+						<label for="ip_winter" class="inlineLabel">
+							<input type="checkbox" name="ip_winter" value="1" id="ip_winter" checked="checked"/>
+							<span>冬</span>
+						</label>
+					</div>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_combine">配菜：</label>
+					<textarea name="ip_combine" id="ip_combine">{{combine}}</textarea>
+					<p class="formHint">
+						<span>使用空格分隔</span>
+					</p>
+				</div>
+				
+				<div class="ctrlHolder">
+					<p class="label">等级：</p>
+					<div class="multiField">
+						<label for="ip_r1" class="inlineLabel">
+							<input type="radio" name="ip_r" value="1" id="ip_r1" checked="checked"/>
+							<span>1</span>
+						</label>
+						<label for="ip_r2" class="inlineLabel">
+							<input type="radio" name="ip_r" value="2" id="ip_r2"/>
+							<span>2</span>
+						</label>
+						<label for="ip_r3" class="inlineLabel">
+							<input type="radio" name="ip_r" value="3" id="ip_r3"/>
+							<span>3</span>
+						</label>
+						<label for="ip_r4" class="inlineLabel">
+							<input type="radio" name="ip_r" value="4" id="ip_r4"/>
+							<span>4</span>
+						</label>
+						<label for="ip_r5" class="inlineLabel">
+							<input type="radio" name="ip_r" value="5" id="ip_r5"/>
+							<span>5</span>
+						</label>
+					</div>
+				</div>
+			</fieldset>
+			
+			<fieldset class="inlineLabels">
+				<legend>其他信息</legend>
+				
+				<div class="ctrlHolder">
+					<label for="ip_source">原料：</label>
+					<textarea name="ip_source" id="ip_source">{{source}}</textarea>
+					<p class="formHint">
+						<span>使用空格分隔</span>
+					</p>
+				</div>
+				
+				<div class="ctrlHolder">
+					<label for="ip_other">备注：</label>
+					<textarea name="ip_other" id="ip_other">{{note}}</textarea>
+				</div>
+			</fieldset>
+			
+			<div class="buttonHolder">
+				<button type="reset" class="secondaryAction">清空</button>
+				<button type="submit" class="primaryAction">提交</button>
+			</div>
+	
+		</form>
+	</div>
+	
+	<div id="page_frame" class="grid_2">
+		<p>  </p>
+	</div>
+
+</div>
+
+<div class="clear"></div>
+<div id="info_hide" class="container_12">
+	<label id="lb_key">{{id}}</label>
+	<label id="lb_cate">{{category}}</label>
+	<label id="lb_type">{{type}}</label>
+	<label id="lb_hot">{{hot}}</label>
+	<label id="lb_sprint">{{sprint}}</label>
+	<label id="lb_summer">{{summer}}</label>
+	<label id="lb_fall">{{fall}}</label>
+	<label id="lb_winter">{{winter}}</label>
+	<label id="lb_rate">{{rate}}</label>
+</div>
+
+</body>
+</html>

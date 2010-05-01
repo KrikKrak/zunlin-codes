@@ -1,0 +1,13 @@
+/* CUSTOM PANEL UI STYLE */
+
+#ip_combine
+{
+	height: 35px;
+}
+
+.errorElement
+{
+	
+}
+
+.error{ background: #ffdfdf; border: 1px solid #df7d7d; border-width: 1px 0; }

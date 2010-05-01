@@ -28,15 +28,17 @@ class BrowseRecipe2(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_value))
 
 class DelAllRecords(webapp.RequestHandler):
-    def post(self):
+    def get(self):
         d = self.request.get("del")
-        if (d != "yes"):
+        if (d != "no"):
+            self.response.out.write("no such page")
             return
         
         # USE THIS TO DELETE ALL RECORDS
-        recipes = db.GqlQuery("SELECT * FROM RecipeModel ORDER BY name LIMIT 10")
-        r = recipes.fetch(10)
+        recipes = db.GqlQuery("SELECT * FROM RecipeModel")
+        r = recipes.fetch(1000)
         db.delete(r)
+        self.response.out.write("done")
         
 class RemoveRecipe(webapp.RequestHandler):
     def post(self):
@@ -149,19 +151,10 @@ class PostRecipe(webapp.RequestHandler):
             data[i] = result
             i = i + 1
             
-        k = simplejson.dumps(results);
+        k = simplejson.dumps(results)
         self.response.out.write(k)
         
     def post(self):
-        key = self.request.get("key")
-        
-        # filter key
-        if key:
-            recipe = db.get(key)
-            if (not recipe):
-                self.response.out.write("error")
-                return
-        
         name = self.request.get("ip_name")
         category = self.request.get("ip_category")
         type = self.request.get("ip_type")
@@ -210,7 +203,50 @@ class PostRecipe(webapp.RequestHandler):
         self.redirect("/browse2")
         
 class EditRecipe(webapp.RequestHandler):
+    def get(self):
+        key = self.request.get("key")
+        # get related recipe
+        if key:
+            try:
+                recipe = db.get(key)
+            except:
+                self.response.out.write("Can not find this recipe!")
+                return
+        else:
+            self.response.out.write("Can not find this recipe!")
+            return
+        
+        template_value = {"pageTitle": "Edit Recipe: " + recipe.name,
+                          "id": key,
+                          "recipeName": recipe.name,
+                          "category": recipe.category,
+                          "type": recipe.type,
+                          "hot": recipe.hot,
+                          "useCount": recipe.count,
+                          "sprint": recipe.sprint,
+                          "summer": recipe.summer,
+                          "fall": recipe.fall,
+                          "winter": recipe.winter,
+                          "combine": " ".join(recipe.combine),
+                          "rate": recipe.rate,
+                          "source": " ".join(recipe.source),
+                          "note": recipe.other}
+        path = os.path.join(os.path.dirname(__file__), "template/edit.html")
+        self.response.out.write(template.render(path, template_value))
+
     def post(self):
+        key = self.request.get("ip_key")
+        # get related recipe
+        if key:
+            try:
+                recipe = db.get(key)
+            except:
+                self.response.out.write("error no recipe found")
+                return
+        else:
+            self.response.out.write("error no key input")
+            return
+        
         name = self.request.get("ip_name")
         category = self.request.get("ip_category")
         type = self.request.get("ip_type")
@@ -224,38 +260,37 @@ class EditRecipe(webapp.RequestHandler):
         rate = self.request.get("ip_r")
         source = self.request.get("ip_source")
         other = self.request.get("ip_other")
-            
-        nr = recipe
-        nr.name = name
-        nr.category = category
-        nr.type = type
+
+        recipe.name = name
+        recipe.category = category
+        recipe.type = type
         if (hot):
-            nr.hot = True
+            recipe.hot = True
         else:
-            nr.hot = False
-        nr.count = string.atoi(count)
+            recipe.hot = False
+        recipe.count = string.atoi(count)
         if (sprint):
-            nr.sprint = True
+            recipe.sprint = True
         else:
-            nr.sprint = False
+            recipe.sprint = False
         if (summer):
-            nr.summer = True
+            recipe.summer = True
         else:
-            nr.summer = False
+            recipe.summer = False
         if (fall):
-            nr.fall = True
+            recipe.fall = True
         else:
-            nr.fall = False
+            recipe.fall = False
         if (winter):
-            nr.winter = True
+            recipe.winter = True
         else:
-            nr.winter = False
-        nr.rate = string.atoi(rate)
-        nr.combine = combine.split(" ")
-        nr.source = source.split(" ")
-        nr.other = other
+            recipe.winter = False
+        recipe.rate = string.atoi(rate)
+        recipe.combine = combine.split(" ")
+        recipe.source = source.split(" ")
+        recipe.other = other
         
-        nr.put()
+        recipe.put()
         self.redirect("/browse2")
 
 class AddRecipe(webapp.RequestHandler):

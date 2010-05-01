@@ -47,6 +47,9 @@ $(document).ready (function(){
 	
 	// var define
 	var dishXML;
+	var curIdx = 0;
+	var recipeCount = 0;
+	var dishData = [];
 	var result_table_head_str = "<tr><th width='200' scope='col'>菜名</th><th width='80' scope='col'>类别</th><th width='80' scope='col'>种类</th><th width='160' scope='col'>级别</th><th width='80' scope='col'>使用次数</th></tr>";
 	
 	// disable all select options
@@ -72,6 +75,7 @@ $(document).ready (function(){
 	function xmlLoaded(data)
 	{
 		dishXML = data;
+		dishData = $(dishXML).find("Dish");
 		// get xml version first
 		var recipeXMLVersion = $(data).find("Version").text();
 
@@ -79,6 +83,7 @@ $(document).ready (function(){
 		$("#result_table").append(result_table_head_str);
 			
 		// get dishs
+		var k = 0;
 		$(dishXML).find("Dish").each(function(i){
 			var dishName = $(this).children("DishName");
 			var dnTxt = formatString(dishName.text());
@@ -94,13 +99,129 @@ $(document).ready (function(){
 								+ usedTimes.text() + "</td></tr>";
 								
 			$("#result_table").append(t);
+			
+			k += 1;
 		});
+		recipeCount = k;
+		//alert(recipeCount)
 		
 		// format table to make it a little nicer
 		$("#result_table tr:odd").css("background-color", "#CCCCCC");
 		
 		// add table row click listener
 		$("#result_table tr").click(dishClick);
+		
+		addRecipe();
+	}
+	
+	
+	function addRecipe()
+	{
+		if (curIdx < recipeCount)
+		{
+			var d = "";
+			
+			var dish = $(dishXML).find("Dish").eq(curIdx);
+			//alert(dish)
+			var dishName = $(dish).children("DishName");
+			var dnTxt = formatString(dishName.text());
+			d += "ip_name=" + dnTxt;
+			
+			var rate = $(dish).children("Rate").text();
+			d += "&ip_r=" + rate;
+			
+			var category = $(dish).children("Category").text();
+			d += "&ip_category=" + category;
+			
+			var dishType = $(dish).children("DishType").text();
+			d += "&ip_type=" + dishType;
+			
+			var usedTimes = $(dish).children("UsedTimes").text();
+			//alert(usedTimes)
+			d += "&ip_count=" + usedTimes;
+			
+			var isHot = $(dish).children("IsHot").text();
+			if (isHot == "true")
+			{
+				d += "&ip_hot=" + isHot;
+			}
+			
+			var otherNote = $(dish).children("OtherNotes").text();
+			otherNote = formatString(otherNote);
+			if (otherNote != "") {
+				d += "&ip_other=" + otherNote;
+			}
+			
+			var s = "";
+			dish.find("Season").each(function(i){
+				var m = formatString($(this).text());
+				if (m == "1")
+				{
+					if (s != "")
+					{
+						s += "&";
+					}
+					s += "ip_sprint=true";
+				}
+				if (m == "2")
+				{
+					if (s != "")
+					{
+						s += "&";
+					}
+					s += "ip_summer=true";
+				}
+				if (m == "3")
+				{
+					if (s != "")
+					{
+						s += "&";
+					}
+					s += "ip_fall=true";
+				}
+				if (m == "4")
+				{
+					if (s != "")
+					{
+						s += "&";
+					}
+					s += "ip_winter=true";
+				}
+			})
+			if (s != "") {
+				d += "&" + s;
+			}
+
+			var c = combineArray(dish, "Content");
+			if (c != "") {
+				d += "&ip_source=" + c;
+			}
+			
+			var n = combineArray(dish, "Name");
+			if (n != "") {
+				d += "&ip_combine=" + n;
+			}
+			
+			//alert(d);
+
+			call4Add(d);
+		}
+	}
+	
+	function call4Add(d)
+	{
+		$.ajax({
+			type: "POST",
+			url: "/postnew",
+			data: d,
+			success: recipeAdded
+		})
+	}
+	
+	function recipeAdded(data)
+	{
+		curIdx += 1;
+		addRecipe();
 	}
 	
 	function updateDishs()
@@ -287,22 +408,7 @@ $(document).ready (function(){
 	
 	function getSeason(m)
 	{
-		if (m == "1")
-		{
-			return "春";
-		}
-		if (m == "2")
-		{
-			return "夏";
-		}
-		if (m == "3")
-		{
-			return "秋";
-		}
-		if (m == "4")
-		{
-			return "冬";
-		}
+		
 	}
 	
 	function printObj(obj)
