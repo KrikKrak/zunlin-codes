@@ -6,13 +6,7 @@ $(document).ready (function(){
 	
 	/* put page init function here */
 	//alert("page load...");
-	
-	/*
-	$("#btnTest").click (function()
-	{
-		$("#d_name").text("abc");
-	})
-	*/
+	$("#dish_detail_panel").hide();
 	
 	// hook up listener for filter
 	$("#ip_show_all").click (function()
@@ -64,7 +58,7 @@ $(document).ready (function(){
 	
 	$("#btnEdit").click (function()
 	{
-		
+		open("edit?key=" + curDetailKey, "_self");
 	})
 	
 	$("#btnDel").click (function()
