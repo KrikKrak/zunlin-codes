@@ -201,9 +201,18 @@ class PostRecipe(webapp.RequestHandler):
         nr.source = source.split(" ")
         nr.other = other
         if (img):
-            nr.img = db.Blob(img)
+            #imgv = self.request.params["ip_file"]
+            #size = len(imgv.value)
+            #filename = imgv.filename
+            try:
+                nr.img = db.Blob(img)
+                nr.put()
+            except:
+                self.response.out.write("error file too large")
+                return
+        else:
+            nr.put()
         
-        nr.put()
         if (img):
             nr.imgurl = "img?id=%s" % (nr.key())
             nr.put()

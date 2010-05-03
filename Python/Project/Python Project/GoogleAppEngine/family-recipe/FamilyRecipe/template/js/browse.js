@@ -111,7 +111,7 @@ $(document).ready (function(){
 		// add table row click listener
 		$("#result_table tr").click(dishClick);
 		
-		addRecipe();
+		//addRecipe();
 	}
 	
 	
