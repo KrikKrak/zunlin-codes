@@ -229,6 +229,15 @@ $(document).ready (function(){
 			$("#d_rate").text(r.rate);
 			$("#d_source").text(r.source);
 			$("#d_other").text(r.other);
+			if (r.imgurl != null && r.imgurl != "")
+			{
+				$("#recipe_img").attr("src", r.imgurl);
+				$("#recipe_img").show();
+			}
+			else
+			{
+				$("#recipe_img").hide();
+			}
 			
 			break;
 		}

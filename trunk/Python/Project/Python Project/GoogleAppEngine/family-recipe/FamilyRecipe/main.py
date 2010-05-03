@@ -148,6 +148,7 @@ class PostRecipe(webapp.RequestHandler):
             result["rate"] = recipe.rate
             result["source"] = " ".join(recipe.source)
             result["other"] = recipe.other
+            result["imgurl"] = recipe.imgurl
             data[i] = result
             i = i + 1
             
@@ -168,6 +169,7 @@ class PostRecipe(webapp.RequestHandler):
         rate = self.request.get("ip_r")
         source = self.request.get("ip_source")
         other = self.request.get("ip_other")
+        img = self.request.get("ip_file")
             
         nr = RecipeModel()
         nr.name = name
@@ -198,8 +200,14 @@ class PostRecipe(webapp.RequestHandler):
         nr.combine = combine.split(" ")
         nr.source = source.split(" ")
         nr.other = other
+        if (img):
+            nr.img = db.Blob(img)
         
         nr.put()
+        if (img):
+            nr.imgurl = "img?id=%s" % (nr.key())
+            nr.put()
+
         self.redirect("/browse2")
         
 class EditRecipe(webapp.RequestHandler):
@@ -302,6 +310,24 @@ class AddRecipe(webapp.RequestHandler):
 class SearchRecipe(webapp.RequestHandler):
     def get(self):
 		self.response.out.write("This is a test page for SearchRecipe service used by client.")
+        
+class GetRecipeImg(webapp.RequestHandler):
+    def get(self):
+        key = self.request.get("id")
+        # get related recipe
+        if key:
+            try:
+                recipe = db.get(key)
+            except:
+                self.response.out.write("error no recipe found")
+                return
+        else:
+            self.response.out.write("error no key input")
+            return
+        
+        if (recipe.img):
+            self.response.headers["Content-type"]="image/png"
+            self.response.out.write(recipe.img)
 
 class RecipeModel(db.Model):
     createDate = db.DateProperty(auto_now_add = True)
@@ -318,6 +344,8 @@ class RecipeModel(db.Model):
     rate = db.IntegerProperty()
     source = db.StringListProperty()
     other = db.StringProperty(multiline = True)
+    img = db.BlobProperty()
+    imgurl = db.StringProperty()
       
 def main():
   application = webapp.WSGIApplication([
@@ -330,6 +358,7 @@ def main():
                                         ('/edit', EditRecipe),
                                         ('/delallrecords', DelAllRecords),
                                         ('/delete', RemoveRecipe),
+                                        ('/img', GetRecipeImg),
 										],
 										debug=True)
   wsgiref.handlers.CGIHandler().run(application)

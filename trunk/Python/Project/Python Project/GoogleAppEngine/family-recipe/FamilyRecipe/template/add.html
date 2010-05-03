@@ -30,7 +30,7 @@
 		<h1>开始添加新菜</h1>
 		<h1 id="errorHead" class="error">请正确填写内容后再提交</h1>
 
-		<form id="form_basic_info" action="/postnew" method="post" class="uniForm">
+		<form id="form_basic_info" action="/postnew" enctype="multipart/form-data" method="post" class="uniForm">
 		
 			<fieldset class="inlineLabels">
 				<legend>基本信息</legend>
@@ -149,6 +149,11 @@
 				<div class="ctrlHolder">
 					<label for="ip_other">备注：</label>
 					<textarea name="ip_other" id="ip_other"></textarea>
+				</div>
+				
+				<div class='ctrlHolder'>
+					<label for="ip_file">上传图片：</label>
+					<input type="file" id="ip_file" name="ip_file" size="35" class="fileUpload"/>
 				</div>
 			</fieldset>
 			
