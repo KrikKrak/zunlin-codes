@@ -10,7 +10,6 @@ package com.larryzzl.flex.remotekeynote.controller
 	import flash.net.GroupSpecifier;
 	import flash.net.NetConnection;
 	import flash.net.NetGroup;
-	import flash.utils.ByteArray;
 
 	public class ApplicationController
 	{
@@ -18,7 +17,6 @@ package com.larryzzl.flex.remotekeynote.controller
 		
 		protected var eventCenter:EventCenter = EventCenter.inst;
 		protected var logger:Logger = Logger.inst;
-		protected var slideRemoter:SlideRemoter = SlideRemoter.inst;
 		
 		private var nc:NetConnection;
 		private var netGroup:NetGroup;
@@ -52,38 +50,39 @@ package com.larryzzl.flex.remotekeynote.controller
 		
 		protected function setupListeners():void
 		{
-			eventCenter.addEventListener(ApplicationEvent.CONNECT_TO_SERVER, onConnectToServer, false, 0, true);
-			eventCenter.addEventListener(ApplicationEvent.SEND_HAND_SHAKE, onSendHandShake, false, 0, true);
+			eventCenter.addEventListener(ApplicationEvent.SETUP_CONNECTION, onSetupConnection, false, 0, true);
 			
-			eventCenter.addEventListener(ApplicationEvent.COMMAND_SLIDE_NEXT, onCommandSlideNext, false, 0, true);
-			eventCenter.addEventListener(ApplicationEvent.COMMAND_SLIDE_PREVIOUS, onCommandSlidePrevious, false, 0, true);
-			eventCenter.addEventListener(ApplicationEvent.COMMAND_SLIDE_EXIT_APP, onCommandSlideExitApp, false, 0, true);
+			eventCenter.addEventListener(SlideEvent.SEND_SLIDE_CONTENT, onCommandSlideSendContent, false, 0, true);
+			eventCenter.addEventListener(SlideEvent.SEND_SLIDE_TEXT, onCommandSendText, false, 0, true);
+			eventCenter.addEventListener(SlideEvent.UPDATE_SLIDE_INFO, onCommandSlideUpdateInfo, false, 0, true);
+			eventCenter.addEventListener(SlideEvent.RESET_SLIDE, onCommandResetSlide, false, 0, true);
 		}
 		
-		protected function onSendHandShake(event:Event):void
+		protected function onCommandResetSlide(event:SlideEvent):void
 		{
-			startHandShake();
+			logger.fine("Send command: resetSlide");
+			sendMsg({command: {type: "resetSlide"}});
 		}
 		
-		protected function onCommandSlideExitApp(event:ApplicationEvent):void
+		protected function onCommandSlideSendContent(event:SlideEvent):void
 		{
-			logger.fine("Send command: slideExit");
-			sendMsg({command: {type: "slideExit"}});
+			logger.fine("Send slideContent, index: " + event.slideIndex);
+			sendMsg({slideContent: {slideContent: event.slideContent, slideIndex: event.slideIndex}});
 		}
 		
-		protected function onCommandSlidePrevious(event:ApplicationEvent):void
+		protected function onCommandSendText(event:SlideEvent):void
 		{
-			logger.fine("Send command: slidePrevious");
-			sendMsg({command: {type: "slidePrevious"}});
+			logger.fine("Send slideText, index: " + event.slideIndex);
+			sendMsg({slideText: {slideText: event.slideText, slideIndex: event.slideIndex}});
 		}
 		
-		protected function onCommandSlideNext(event:ApplicationEvent):void
+		protected function onCommandSlideUpdateInfo(event:SlideEvent):void
 		{
-			logger.fine("Send command: slideNext");
-			sendMsg({command: {type: "slideNext"}});
+			logger.fine("Send command: slideInfo");
+			sendMsg({command: {type: "slideInfo", info: {total: event.totalSlideNumber}}});
 		}
 		
-		protected function onConnectToServer(event:ApplicationEvent):void
+		protected function onSetupConnection(event:ApplicationEvent):void
 		{
 			if (connectionState == 0)
 			{
@@ -112,7 +111,6 @@ package com.larryzzl.flex.remotekeynote.controller
 				
 				case "NetGroup.Connect.Success":
 					logger.fine("NetGroup.Connect.Success");
-					startHandShake();
 					break;
 				
 				// TODO: check if the exit works
@@ -154,52 +152,35 @@ package com.larryzzl.flex.remotekeynote.controller
 			netGroup.addEventListener(NetStatusEvent.NET_STATUS, onNetStatus, false, 0, true);
 		}
 		
-		private function startHandShake():void
-		{
-			logger.fine("Start hand shake");
-			netGroup.sendToAllNeighbors({handShake: AppConfiguration.HAND_SHAKE_MESSAGE});
-		}
-		
 		private function dataParser(val:Object):void
 		{
 			if (val.hasOwnProperty("handShake"))
 			{
-				if (val.handShake == AppConfiguration.HAND_SHAKE_CONFIRM_MESSAGE)
+				if (val.handShake == AppConfiguration.HAND_SHAKE_MESSAGE)
 				{
-					logger.fine("Server connected");
+					logger.fine("client connected");
+					netGroup.sendToAllNeighbors({handShake: AppConfiguration.HAND_SHAKE_CONFIRM_MESSAGE});
 					connectionState = 2;
-					eventCenter.dispatchEvent(new ApplicationEvent(ApplicationEvent.CONNECT_TO_SERVER_DONE));
+					eventCenter.dispatchEvent(new ApplicationEvent(ApplicationEvent.CLIENT_CONNECTED));
 				}
-			}
-			else if (val.hasOwnProperty("slideText"))
-			{
-				logger.fine("Receive slideText, index: " + val.slideText.slideIndex);
-				var e:SlideEvent = new SlideEvent(SlideEvent.ADD_SLIDE_TEXT);
-				e.slideIndex = val.slideText.slideIndex;
-				e.slideText = val.slideText.slideText;
-				eventCenter.dispatchEvent(e);
-			}
-			else if (val.hasOwnProperty("slideContent"))
-			{
-				logger.fine("Receive slideText, index: " + val.slideContent.slideIndex);
-				var e2:SlideEvent = new SlideEvent(SlideEvent.ADD_SLIDE_CONTENT);
-				e2.slideIndex = val.slideContent.slideIndex;
-				e2.slideContent = val.slideContent.slideContent;
-				eventCenter.dispatchEvent(e2);
 			}
 			else if (val.hasOwnProperty("command"))
 			{
 				logger.fine("Receive command, type: " + val.command.type);
 				switch (val.command.type)
 				{
-					case "resetSlide":
-						eventCenter.dispatchEvent(new SlideEvent(SlideEvent.RESET_SLIDE));
+					case "slideNext":
+						logger.fine("slideNext");
+						eventCenter.dispatchEvent(new SlideEvent(SlideEvent.SLIDE_TO_NEXT));
 						break;
 					
-					case "slideInfo":
-						var e3:SlideEvent = new SlideEvent(SlideEvent.SLIDE_INFO_UPDATE);
-						e3.slideInfo = val.command.info;
-						eventCenter.dispatchEvent(e3);
+					case "slidePrevious":
+						logger.fine("slidePrevious");
+						eventCenter.dispatchEvent(new SlideEvent(SlideEvent.SLIDE_TO_PREVIOUS));
+						break;
+					
+					case "slideExit":
+						eventCenter.dispatchEvent(new SlideEvent(ApplicationEvent.EXIT_APP));
 						break;
 				}
 			}
