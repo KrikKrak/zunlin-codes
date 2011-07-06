@@ -10,6 +10,9 @@
 			import com.larryzzl.flex.remotekeynote.events.ApplicationEvent;
 			import com.larryzzl.flex.remotekeynote.events.EventCenter;
 			import com.larryzzl.flex.remotekeynote.events.SlideEvent;
+			import com.larryzzl.flex.remotekeynote.utils.TimeUtils;
+			
+			import flash.utils.getTimer;
 			
 			import flashx.textLayout.conversion.TextConverter;
 			
@@ -28,11 +31,19 @@
 			[Bindable]
 			private var slideCount:String = "N / N";
 			
+			private var slideStartTime:int = 0;
+			private var curSlideStartTime:int = 0;
+			private var slideTimeCheckTimer:Timer;
+			
 			protected function onAppReady(event:FlexEvent):void
 			{
+				slideTimeCheckTimer = new Timer(1000);
+				slideTimeCheckTimer.addEventListener(TimerEvent.TIMER, onSlideCheckTimer, false, 0, true);
+				
 				// set up connection
 				eventCenter.addEventListener(ApplicationEvent.CONNECT_TO_SERVER_DONE, onServerConnected, false, 0, true);
 				eventCenter.addEventListener(SlideEvent.CURRENT_SLIDE_UPDATED, onCurrentSlideUpdated, false, 0, true);
+				eventCenter.addEventListener(SlideEvent.RESET_SLIDE, onSlideReset, false, 0, true);
 				
 				eventCenter.dispatchEvent(new ApplicationEvent(ApplicationEvent.CONNECT_TO_SERVER));
 				
@@ -90,6 +101,29 @@
 				slideCount = (event.slideIndex + 1) + " / " + event.totalSlide;
 				slideTextArea.textFlow = TextConverter.importToFlow(event.slideText, TextConverter.TEXT_FIELD_HTML_FORMAT);
 				slideContentArea.source = event.slideBitmapData;
+				
+				if (slideStartTime == 0)
+				{
+					slideStartTime = getTimer();
+					slideTimeCheckTimer.start();
+				}
+				curSlideStartTime = getTimer();
+			}
+			
+			protected function onSlideCheckTimer(event:TimerEvent):void
+			{
+				if (slideStartTime > 0)
+				{
+					var t:int = getTimer();
+					var slideStartTimeDiff:int = t - slideStartTime;
+					var curSlideTimeDiff:int = t - curSlideStartTime;
+					slideTimer = TimeUtils.ms2TimeString(curSlideTimeDiff) + " / " + TimeUtils.ms2TimeString(slideStartTimeDiff);
+				}
+			}
+			
+			protected function onSlideReset(event:Event):void
+			{
+				slideStartTime = 0;
 			}
 			
 		]]>
